@@ -2,6 +2,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { register, unregister } from '@tauri-apps/plugin-global-shortcut';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 import './App.css';
 
 import { Sound, PlayingInstance } from './types';
@@ -36,6 +38,13 @@ export default function App() {
   const [showDriverSetup, setShowDriverSetup] = useState(false);
   const [errorToast, setErrorToast] = useState<string | null>(null);
 
+  // Auto-updater state
+  type UpdateBannerState = 'hidden' | 'available' | 'downloading' | 'ready';
+  const [updateBanner, setUpdateBanner] = useState<UpdateBannerState>('hidden');
+  const [updateVersion, setUpdateVersion] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [pendingUpdate, setPendingUpdate] = useState<any>(null);
+
   // Compute effective output devices based on play mode
   const effectiveDevices = useCallback((mode: PlayMode, configured: string[], all: string[]) => {
     if (mode === 'speakers') {
@@ -62,6 +71,17 @@ export default function App() {
     invoke<boolean>('check_vbcable_installed').then(installed => {
       if (!installed) setShowDriverSetup(true);
     });
+    // Silently check for updates 3 seconds after startup
+    setTimeout(async () => {
+      try {
+        const update = await check();
+        if (update?.available) {
+          setUpdateVersion(update.version ?? null);
+          setPendingUpdate(update);
+          setUpdateBanner('available');
+        }
+      } catch (_) { /* no update endpoint yet or offline */ }
+    }, 3000);
   }, []);
 
   // Tauri audio event listeners
@@ -350,6 +370,74 @@ export default function App() {
           }}
         >
           ⚠ Audio error: {errorToast}
+        </div>
+      )}
+
+      {/* ── Update banner ── */}
+      {updateBanner !== 'hidden' && (
+        <div style={{
+          position: 'fixed', bottom: 42, right: 16,
+          background: '#111', border: '1px solid rgba(79,142,247,0.3)',
+          borderRadius: 10, padding: '10px 14px',
+          display: 'flex', alignItems: 'center', gap: 12,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+          zIndex: 99,
+          maxWidth: 340,
+        }}>
+          <div style={{ flex: 1 }}>
+            {updateBanner === 'available' && (
+              <>
+                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: '#c8c8c8' }}>
+                  Update available — v{updateVersion}
+                </p>
+                <p style={{ margin: '2px 0 0', fontSize: 11, color: '#444' }}>
+                  Click to download and restart.
+                </p>
+              </>
+            )}
+            {updateBanner === 'downloading' && (
+              <p style={{ margin: 0, fontSize: 12.5, color: '#888' }}>Downloading update…</p>
+            )}
+            {updateBanner === 'ready' && (
+              <p style={{ margin: 0, fontSize: 12.5, color: '#22c55e' }}>Update ready — restarting…</p>
+            )}
+          </div>
+
+          {updateBanner === 'available' && (
+            <button
+              onClick={async () => {
+                if (!pendingUpdate) return;
+                setUpdateBanner('downloading');
+                try {
+                  await pendingUpdate.downloadAndInstall();
+                  setUpdateBanner('ready');
+                  setTimeout(() => relaunch(), 1500);
+                } catch (e) {
+                  console.error(e);
+                  setUpdateBanner('hidden');
+                }
+              }}
+              style={{
+                padding: '6px 14px', borderRadius: 6, border: 'none',
+                background: '#4f8ef7', color: '#fff',
+                fontSize: 11.5, fontWeight: 600, cursor: 'pointer', flexShrink: 0,
+              }}
+            >
+              Update
+            </button>
+          )}
+
+          {updateBanner === 'available' && (
+            <button
+              onClick={() => setUpdateBanner('hidden')}
+              style={{
+                width: 20, height: 20, borderRadius: 4, border: 'none',
+                background: 'transparent', color: '#333', cursor: 'pointer',
+                fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >×</button>
+          )}
         </div>
       )}
     </div>

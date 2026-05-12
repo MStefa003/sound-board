@@ -43,7 +43,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIwRURCMDEyQzM3Mzg1NEMKUldSTWhYUERFckR0c0l6MEVCbHFNclNUM0dQSnFZV21rcXl5bkluR1pyL2VXZHl3ajcrUjRWS0IK",
       "endpoints": [
-        "https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/releases/latest/download/latest.json"
+        "https://github.com/MStefa003/sound-board/releases/latest/download/latest.json"
       ],
       "dialog": false
     }
