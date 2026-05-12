@@ -1,0 +1,31 @@
+[package]
+name = "soundpad"
+version = "0.1.0"
+description = "SoundPad - Modern Soundboard"
+authors = ["SoundPad"]
+edition = "2021"
+
+[lib]
+name = "soundpad_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-global-shortcut = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rodio = { version = "0.19", default-features = false, features = ["symphonia-all"] }
+cpal = "0.15"
+uuid = { version = "1", features = ["v4"] }
+dirs = "5"
+

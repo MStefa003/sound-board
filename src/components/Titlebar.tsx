@@ -1,0 +1,107 @@
+﻿import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useState, useEffect } from "react";
+
+const appWindow = getCurrentWindow();
+
+const WaveIcon = () => (
+  <svg width="16" height="11" viewBox="0 0 16 11" fill="none">
+    <rect x="0"    y="5"   width="2.5" height="1"  rx="0.5" fill="currentColor" opacity="0.3"/>
+    <rect x="3.5"  y="3.5" width="2.5" height="4"  rx="1.25" fill="currentColor" opacity="0.5"/>
+    <rect x="7"    y="0"   width="2.5" height="11" rx="1.25" fill="currentColor" opacity="0.85"/>
+    <rect x="10.5" y="3.5" width="2.5" height="4"  rx="1.25" fill="currentColor" opacity="0.5"/>
+    <rect x="14"   y="5"   width="2"   height="1"  rx="0.5" fill="currentColor" opacity="0.3"/>
+  </svg>
+);
+
+const MinimizeIcon = () => (
+  <svg width="10" height="1" viewBox="0 0 10 1" fill="none">
+    <rect width="10" height="1" rx="0.5" fill="currentColor"/>
+  </svg>
+);
+
+const MaximizeIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+    <rect x="0.5" y="0.5" width="9" height="9" rx="1" stroke="currentColor" strokeWidth="1"/>
+  </svg>
+);
+
+const RestoreIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+    <rect x="2.5" y="0.5" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1"/>
+    <path d="M0.5 2.5v7a1 1 0 0 0 1 1h7" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+  </svg>
+);
+
+const CloseIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+    <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+  </svg>
+);
+
+export default function Titlebar() {
+  const [maximized, setMaximized] = useState(false);
+
+  useEffect(() => {
+    appWindow.isMaximized().then(setMaximized);
+    const unlisten = appWindow.onResized(async () => {
+      setMaximized(await appWindow.isMaximized());
+    });
+    return () => { unlisten.then(fn => fn()); };
+  }, []);
+
+  const controls = [
+    { icon: <MinimizeIcon />, fn: () => appWindow.minimize(),       isClose: false, title: "Minimize" },
+    { icon: maximized ? <RestoreIcon /> : <MaximizeIcon />, fn: () => appWindow.toggleMaximize(), isClose: false, title: maximized ? "Restore" : "Maximize" },
+    { icon: <CloseIcon />,   fn: () => appWindow.close(),           isClose: true,  title: "Close"    },
+  ];
+
+  return (
+    <div
+      data-tauri-drag-region
+      className="flex items-center justify-between shrink-0 select-none"
+      style={{ height: 40, background: "#0c0c0c", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+    >
+      <div
+        className="flex items-center gap-2.5 px-3"
+        style={{ pointerEvents: "none" }}
+      >
+        <span style={{ color: "#3a3a3a" }}>
+          <WaveIcon />
+        </span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: "#383838", letterSpacing: "0.16em" }}>
+          SOUNDPAD
+        </span>
+      </div>
+
+      <div className="flex" style={{ height: "100%" }}>
+        {controls.map((btn, i) => (
+          <button
+            key={i}
+            onClick={btn.fn}
+            title={btn.title}
+            style={{
+              width: 46, height: "100%",
+              border: "none", outline: "none",
+              background: "transparent", cursor: "pointer",
+              color: "#454545",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "background 0.1s, color 0.1s",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = btn.isClose
+                ? "rgba(196, 43, 33, 0.85)"
+                : "rgba(255,255,255,0.07)";
+              e.currentTarget.style.color = btn.isClose ? "#fff" : "#c8c8c8";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "#454545";
+            }}
+          >
+            {btn.icon}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
