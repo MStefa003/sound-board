@@ -82,7 +82,12 @@ export default function SettingsPanel({
       }
     } catch (e) {
       setUpdateStatus("error");
-      setUpdateError(String(e));
+      const msg = String(e);
+      if (msg.toLowerCase().includes("404") || msg.toLowerCase().includes("fetch") || msg.toLowerCase().includes("release json") || msg.toLowerCase().includes("invalid") || msg.toLowerCase().includes("json")) {
+        setUpdateError("No releases found. Publish a release on GitHub to enable updates.");
+      } else {
+        setUpdateError(msg);
+      }
     }
   };
 
