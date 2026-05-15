@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Play, Square, Trash2, Edit2 } from "lucide-react";
 import { Sound, TILE_COLORS, formatDuration } from "../types";
 import AssignCategoryModal from "./AssignCategoryModal";
@@ -28,6 +28,15 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
     };
     window.addEventListener("mousedown", close);
     return () => window.removeEventListener("mousedown", close);
+  }, [ctxMenu]);
+
+  useLayoutEffect(() => {
+    if (!ctxMenu || !menuRef.current) return;
+    const rect = menuRef.current.getBoundingClientRect();
+    const x = Math.min(ctxMenu.x, window.innerWidth - rect.width - 4);
+    const y = Math.min(ctxMenu.y, window.innerHeight - rect.height - 4);
+    menuRef.current.style.left = x + 'px';
+    menuRef.current.style.top = y + 'px';
   }, [ctxMenu]);
 
   const toggle = (e: React.MouseEvent) => {

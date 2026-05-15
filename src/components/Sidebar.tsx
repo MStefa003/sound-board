@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Sound } from '../types';
 
 interface SidebarProps {
@@ -44,6 +44,15 @@ export default function Sidebar({
     };
     window.addEventListener('mousedown', close);
     return () => window.removeEventListener('mousedown', close);
+  }, [catCtxMenu]);
+
+  useLayoutEffect(() => {
+    if (!catCtxMenu || !ctxRef.current) return;
+    const rect = ctxRef.current.getBoundingClientRect();
+    const x = Math.min(catCtxMenu.x, window.innerWidth - rect.width - 4);
+    const y = Math.min(catCtxMenu.y, window.innerHeight - rect.height - 4);
+    ctxRef.current.style.left = x + 'px';
+    ctxRef.current.style.top = y + 'px';
   }, [catCtxMenu]);
 
   const startRename = (cat: string) => {
@@ -155,7 +164,11 @@ export default function Sidebar({
               onContextMenu={e => {
                 e.preventDefault();
                 e.stopPropagation();
-                setCatCtxMenu({ x: e.clientX, y: e.clientY, cat });
+                setCatCtxMenu({
+                  x: e.clientX,
+                  y: e.clientY,
+                  cat,
+                });
               }}
               onRename={() => startRename(cat)}
               onDelete={() => handleDeleteCategory(cat)}

@@ -1,6 +1,7 @@
-﻿import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useRef, useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-shortcut';
 import './App.css';
 
@@ -218,10 +219,46 @@ export default function App() {
     saveSounds(updated);
   }, [sounds, saveSounds]);
 
-  const handleDropFiles = useCallback((paths: string[]) => {
-    setDropPath(paths[0]);
-    setEditingSound(null);
-    setShowAddModal(true);
+  const handleDropFiles = useCallback(async (paths: string[]) => {
+    const newSounds: Sound[] = await Promise.all(paths.map(async (path) => {
+      const base = path.replace(/\\/g, '/').split('/').pop() ?? path;
+      const name = base.replace(/\.[^.]+$/, '');
+      let duration: number | null = null;
+      try { duration = await invoke<number>('get_sound_duration', { path }); } catch {}
+      return {
+        id: crypto.randomUUID(),
+        name,
+        path,
+        hotkey: null,
+        volume: 1.0,
+        color: 'grey',
+        duration,
+        category: null,
+      } satisfies Sound;
+    }));
+    setSounds(prev => {
+      const updated = [...prev, ...newSounds];
+      invoke('save_sounds', { sounds: updated }).catch(console.error);
+      return updated;
+    });
+  }, []);
+
+  // Keep a ref so the Tauri listener (registered once) always calls the latest version
+  const handleDropFilesRef = useRef(handleDropFiles);
+  handleDropFilesRef.current = handleDropFiles;
+
+  // Tauri OS-level file drop (gives real file paths, unlike HTML5 File API)
+  useEffect(() => {
+    const appWindow = getCurrentWindow();
+    const unlisten = appWindow.onDragDropEvent(event => {
+      if (event.payload.type === 'drop') {
+        const audioExts = /\.(mp3|wav|ogg|flac|m4a|aac|opus|wma)$/i;
+        const paths = (event.payload as { type: string; paths: string[] }).paths
+          .filter(p => audioExts.test(p));
+        if (paths.length > 0) handleDropFilesRef.current(paths);
+      }
+    });
+    return () => { unlisten.then(fn => fn()); };
   }, []);
 
   const handleDeviceToggle = (device: string) => {
@@ -238,7 +275,7 @@ export default function App() {
     : false;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ background: 'var(--bg)' }}>
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: 'var(--bg)' }} onContextMenu={e => e.preventDefault()}>
       <Titlebar />
       <Toolbar
         searchQuery={searchQuery}
@@ -295,7 +332,8 @@ export default function App() {
             onEdit={s => { setEditingSound(s); setDropPath(undefined); setShowAddModal(true); }}
             onSetCategory={handleSetCategory}
             onAddSound={() => { setDropPath(undefined); setEditingSound(null); setShowAddModal(true); }}
-            onFileDrop={(path) => { handleDropFiles([path]); }}
+            canReorder={!searchQuery && !activeCategory}
+            onReorder={saveSounds}
           />
         )}
       </div>
