@@ -1,4 +1,4 @@
-
+# Soundpad
 
 A high-performance virtual audio router and soundboard interface. Soundpad bridges local audio playback with digital communication platforms, enabling high-fidelity sound injection into live microphone streams
 
@@ -13,12 +13,12 @@ Soundpad functions as an audio distribution layer. It bifurcates the signal into
 
 ### Interface Overview
 Minimalist dashboard designed for rapid sound triggering and library management
-![Soundpad Interface](<img width="1479" height="846" alt="image" src="https://github.com/user-attachments/assets/3e9a540d-7abe-442e-ba81-95e1d3615058" />
+![Soundpad Interface](<img width="1483" height="848" alt="image" src="https://github.com/user-attachments/assets/ea7f3e0a-76de-4632-aacc-e991d0b16e2d" />
 )
 
 ### Signal Routing
 Configuration panel for managing the virtual passthrough and driver synchronization
-![Routing Logic](<img width="1477" height="846" alt="image" src="https://github.com/user-attachments/assets/036ce97b-fe7a-43f2-9daf-6c76509039e1" />
+![Routing Logic](<img width="1481" height="850" alt="image" src="https://github.com/user-attachments/assets/8017027a-132d-4898-be11-ffd14f6bf1ba" />
 )
 
 ---
