@@ -1,4 +1,4 @@
-<img width="1479" height="846" alt="image" src="https://github.com/user-attachments/assets/0e00e4c2-ef62-4ec0-85ac-aa302fd88c31" /># Soundpad
+
 
 A high-performance virtual audio router and soundboard interface. Soundpad bridges local audio playback with digital communication platforms, enabling high-fidelity sound injection into live microphone streams
 
