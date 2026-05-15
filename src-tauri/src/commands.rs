@@ -202,7 +202,12 @@ pub fn set_selected_devices(state: State<AppState>, devices: Vec<String>) -> Res
 
 #[tauri::command]
 pub fn set_master_volume(state: State<AppState>, volume: f32) -> Result<(), String> {
-    let mut vol = state.master_volume.lock().map_err(|e| e.to_string())?;
-    *vol = volume.clamp(0.0, 2.0);
-    Ok(())
+    let clamped = volume.clamp(0.0, 2.0);
+    *state.master_volume.lock().map_err(|e| e.to_string())? = clamped;
+    state
+        .audio_tx
+        .lock()
+        .map_err(|e| e.to_string())?
+        .send(AudioCmd::SetMasterVolume { volume: clamped })
+        .map_err(|e| e.to_string())
 }

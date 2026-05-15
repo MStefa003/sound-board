@@ -40,8 +40,8 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
       <div
         className="group relative flex flex-col cursor-pointer"
         style={{
-          background: isPlaying ? "#1c1c1c" : "#161616",
-          border: `1px solid ${isPlaying ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.06)"}`,
+          background: isPlaying ? "var(--surface-2)" : "var(--surface-1)",
+          border: `1px solid ${isPlaying ? "var(--border)" : "var(--border-dim)"}`,
           borderLeft: `3px solid ${accent}`,
           borderRadius: 8,
           minHeight: 90,
@@ -52,13 +52,13 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
         onContextMenu={e => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY }); }}
         onMouseEnter={e => {
           const el = e.currentTarget as HTMLElement;
-          el.style.background = isPlaying ? "#202020" : "#1a1a1a";
-          el.style.borderColor = isPlaying ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.1)";
+          el.style.background = isPlaying ? "var(--surface-3)" : "var(--surface-2)";
+          el.style.borderColor = isPlaying ? "var(--border)" : "var(--border)";
         }}
         onMouseLeave={e => {
           const el = e.currentTarget as HTMLElement;
-          el.style.background = isPlaying ? "#1c1c1c" : "#161616";
-          el.style.borderColor = isPlaying ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.06)";
+          el.style.background = isPlaying ? "var(--surface-2)" : "var(--surface-1)";
+          el.style.borderColor = isPlaying ? "var(--border)" : "var(--border-dim)";
         }}
       >
         {isPlaying && (
@@ -75,7 +75,7 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
           <div className="flex items-start gap-2">
             <span style={{
               fontSize: 12.5, fontWeight: 600, lineHeight: 1.35,
-              color: isPlaying ? "#ececec" : "#c8c8c8",
+              color: isPlaying ? "var(--text-1)" : "var(--text-2)",
               flex: 1,
               display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
               transition: "color 0.12s",
@@ -90,14 +90,14 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
           </div>
 
           <div className="flex items-center gap-1.5">
-            <span style={{ fontSize: 10, color: "#404040", fontVariantNumeric: "tabular-nums" }}>
+            <span style={{ fontSize: 10, color: "var(--text-4)", fontVariantNumeric: "tabular-nums" }}>
               {formatDuration(sound.duration)}
             </span>
             {sound.hotkey && (
               <span style={{
                 fontSize: 9, fontFamily: "monospace", fontWeight: 600,
-                color: "#444", background: "#1c1c1c",
-                border: "1px solid rgba(255,255,255,0.07)",
+                color: "var(--text-4)", background: "var(--surface-2)",
+                border: "1px solid var(--border-dim)",
                 borderRadius: 3, padding: "1px 4px",
               }}>
                 {sound.hotkey}
@@ -110,7 +110,7 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
                 onClick={e => { e.stopPropagation(); onStop(playingInstanceId!); }}
                 style={{
                   width: 22, height: 22, borderRadius: 5, border: "none", cursor: "pointer",
-                  background: "rgba(239,68,68,0.1)", color: "#f87171", flexShrink: 0,
+                  background: "var(--danger-dim)", color: "var(--danger)", flexShrink: 0,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transition: "background 0.1s",
                 }}
@@ -126,12 +126,12 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
                 className="opacity-0 group-hover:opacity-100"
                 style={{
                   width: 22, height: 22, borderRadius: 5, border: "none", cursor: "pointer",
-                  background: "rgba(255,255,255,0.07)", color: "#888", flexShrink: 0,
+                  background: "rgba(255,255,255,0.05)", color: "var(--text-3)", flexShrink: 0,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transition: "background 0.1s, color 0.1s, opacity 0.12s",
                 }}
-                onMouseEnter={e => { (e.currentTarget.style.background = "rgba(255,255,255,0.15)"); (e.currentTarget.style.color = "#e0e0e0"); }}
-                onMouseLeave={e => { (e.currentTarget.style.background = "rgba(255,255,255,0.07)"); (e.currentTarget.style.color = "#888"); }}
+                onMouseEnter={e => { (e.currentTarget.style.background = "rgba(255,255,255,0.12)"); (e.currentTarget.style.color = "var(--text-1)"); }}
+                onMouseLeave={e => { (e.currentTarget.style.background = "rgba(255,255,255,0.05)"); (e.currentTarget.style.color = "var(--text-3)"); }}
               >
                 <Play size={8} fill="currentColor" />
               </button>

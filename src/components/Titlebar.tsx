@@ -59,16 +59,16 @@ export default function Titlebar() {
     <div
       data-tauri-drag-region
       className="flex items-center justify-between shrink-0 select-none"
-      style={{ height: 40, background: "#0c0c0c", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+      style={{ height: 40, background: "var(--surface-1)", borderBottom: "1px solid var(--border-dim)" }}
     >
       <div
         className="flex items-center gap-2.5 px-3"
         style={{ pointerEvents: "none" }}
       >
-        <span style={{ color: "#3a3a3a" }}>
+        <span style={{ color: "var(--accent)" }}>
           <WaveIcon />
         </span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: "#383838", letterSpacing: "0.16em" }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.18em" }}>
           SOUNDPAD
         </span>
       </div>
@@ -83,19 +83,19 @@ export default function Titlebar() {
               width: 46, height: "100%",
               border: "none", outline: "none",
               background: "transparent", cursor: "pointer",
-              color: "#454545",
+              color: "var(--text-4)",
               display: "flex", alignItems: "center", justifyContent: "center",
               transition: "background 0.1s, color 0.1s",
             }}
             onMouseEnter={e => {
               e.currentTarget.style.background = btn.isClose
-                ? "rgba(196, 43, 33, 0.85)"
-                : "rgba(255,255,255,0.07)";
-              e.currentTarget.style.color = btn.isClose ? "#fff" : "#c8c8c8";
+                ? "rgba(196, 43, 33, 0.9)"
+                : "rgba(255,255,255,0.08)";
+              e.currentTarget.style.color = btn.isClose ? "#fff" : "var(--text-1)";
             }}
             onMouseLeave={e => {
               e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "#454545";
+              e.currentTarget.style.color = "var(--text-4)";
             }}
           >
             {btn.icon}

@@ -46,22 +46,22 @@ export default function SoundGrid({
   return (
     <div
       className={`flex-1 overflow-y-auto ${dragOver ? 'drag-over' : ''}`}
-      style={{ background: '#0c0c0c', padding: '10px' }}
+      style={{ background: 'var(--bg)', padding: '10px' }}
       onDragOver={handleDragOver}
       onDragLeave={() => setDragOver(false)}
       onDrop={handleDrop}
     >
       {sounds.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full gap-3">
-          <Music size={36} strokeWidth={1} style={{ color: '#2c2c2c' }} />
+          <Music size={36} strokeWidth={1} style={{ color: 'var(--surface-3)' }} />
           <div className="flex flex-col items-center gap-1">
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#464646' }}>No sounds yet</p>
-            <p style={{ fontSize: 12, color: '#2e2e2e' }}>Drag & drop an audio file or click Add Sound</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)' }}>No sounds yet</p>
+            <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Drag & drop an audio file or click Add Sound</p>
           </div>
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full gap-2">
-          <p style={{ fontSize: 13, color: '#444' }}>No results for "{searchQuery}"</p>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>No results for "{searchQuery}"</p>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(156px, 1fr))', gap: 7 }}>
@@ -85,19 +85,19 @@ export default function SoundGrid({
               className="flex flex-col items-center justify-center gap-1.5 transition-colors rounded-lg"
               style={{
                 minHeight: 100,
-                border: '1px dashed rgba(255,255,255,0.1)',
+                border: '1px dashed var(--border-dim)',
                 background: 'transparent',
-                color: '#404040',
+                color: 'var(--text-4)',
                 borderRadius: 8,
                 cursor: 'pointer',
               }}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.2)';
-                (e.currentTarget as HTMLElement).style.color = '#666';
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+                (e.currentTarget as HTMLElement).style.color = 'var(--text-3)';
               }}
               onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)';
-                (e.currentTarget as HTMLElement).style.color = '#404040';
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-dim)';
+                (e.currentTarget as HTMLElement).style.color = 'var(--text-4)';
               }}
             >
               <Plus size={18} strokeWidth={1.5} />

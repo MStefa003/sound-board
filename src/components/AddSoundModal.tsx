@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { X, FolderOpen, Keyboard } from 'lucide-react';
@@ -92,8 +92,8 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
       <div
         className="modal-content flex flex-col"
         style={{
-          background: '#181818',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: 'var(--surface-1)',
+          border: '1px solid var(--border)',
           borderRadius: 12,
           width: 400,
           maxHeight: '90vh',
@@ -101,16 +101,16 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#e8e8e8' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>
             {editingSound ? 'Edit Sound' : 'Add Sound'}
           </span>
           <button
             onClick={onClose}
             className="flex items-center justify-center rounded transition-colors"
-            style={{ width: 26, height: 26, color: '#555', background: 'transparent' }}
-            onMouseEnter={e => { (e.currentTarget.style.background = 'rgba(255,255,255,0.08)'); (e.currentTarget.style.color = '#aaa'); }}
-            onMouseLeave={e => { (e.currentTarget.style.background = 'transparent'); (e.currentTarget.style.color = '#555'); }}
+            style={{ width: 26, height: 26, color: 'var(--text-3)', background: 'transparent' }}
+            onMouseEnter={e => { (e.currentTarget.style.background = 'rgba(255,255,255,0.07)'); (e.currentTarget.style.color = 'var(--text-1)'); }}
+            onMouseLeave={e => { (e.currentTarget.style.background = 'transparent'); (e.currentTarget.style.color = 'var(--text-3)'); }}
           >
             <X size={14} />
           </button>
@@ -120,7 +120,7 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-5 overflow-y-auto">
           {/* File picker */}
           <div className="flex flex-col gap-1.5">
-            <label style={{ fontSize: 11, fontWeight: 500, color: '#666', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               File
             </label>
             <div
@@ -131,16 +131,16 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
               className="flex items-center gap-2.5 cursor-pointer transition-colors rounded-lg"
               style={{
                 padding: '10px 12px',
-                border: dragOver ? '1px solid rgba(255,255,255,0.3)' : '1px dashed rgba(255,255,255,0.12)',
-                background: dragOver ? 'rgba(255,255,255,0.04)' : '#141414',
+                border: dragOver ? '1px solid var(--border)' : '1px dashed var(--border-dim)',
+                background: dragOver ? 'var(--surface-2)' : 'var(--bg)',
                 borderRadius: 8,
                 minHeight: 48,
               }}
-              onMouseEnter={e => { if (!dragOver) (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.2)'; }}
-              onMouseLeave={e => { if (!dragOver) (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.12)'; }}
+              onMouseEnter={e => { if (!dragOver) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}
+              onMouseLeave={e => { if (!dragOver) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-dim)'; }}
             >
-              <FolderOpen size={14} style={{ color: '#555', shrink: 0 } as React.CSSProperties} />
-              <span style={{ fontSize: 12, color: fileName ? '#c8c8c8' : '#444' }}>
+              <FolderOpen size={14} style={{ color: 'var(--text-3)', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: fileName ? 'var(--text-1)' : 'var(--text-3)' }}>
                 {fileName || 'Click to browse or drag & drop an audio file'}
               </span>
             </div>
@@ -148,7 +148,7 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
 
           {/* Name */}
           <div className="flex flex-col gap-1.5">
-            <label style={{ fontSize: 11, fontWeight: 500, color: '#666', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Name
             </label>
             <input
@@ -164,7 +164,7 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
 
           {/* Color */}
           <div className="flex flex-col gap-1.5">
-            <label style={{ fontSize: 11, fontWeight: 500, color: '#666', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Tag Color
             </label>
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -189,17 +189,17 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
           {/* Volume */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <label style={{ fontSize: 11, fontWeight: 500, color: '#666', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Volume
               </label>
-              <span style={{ fontSize: 11, color: '#555' }}>{Math.round(volume * 100)}%</span>
+              <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{Math.round(volume * 100)}%</span>
             </div>
             <input type="range" min="0" max="2" step="0.01" value={volume} onChange={e => setVolume(parseFloat(e.target.value))} />
           </div>
 
           {/* Category */}
           <div className="flex flex-col gap-1.5">
-            <label style={{ fontSize: 11, fontWeight: 500, color: '#666', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Category (optional)
             </label>
             <input
@@ -219,7 +219,7 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
 
           {/* Hotkey */}
           <div className="flex flex-col gap-1.5">
-            <label style={{ fontSize: 11, fontWeight: 500, color: '#666', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <label style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Hotkey (optional)
             </label>
             <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
                 style={{ fontSize: 11 }}
               >
                 <Keyboard size={12} />
-                {recording ? 'Press a key combo…' : (hotkey || 'Click to record')}
+                {recording ? 'Press a key combo�' : (hotkey || 'Click to record')}
               </button>
               {hotkey && (
                 <button
@@ -270,4 +270,5 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
     </div>
   );
 }
+
 

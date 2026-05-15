@@ -1,0 +1,48 @@
+<svg width="1240" height="1240" viewBox="0 0 1240 1240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1240" y2="1240" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1a1f30"/>
+      <stop offset="100%" stop-color="#0c0f1a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="620" cy="620" r="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5b9cf6" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#5b9cf6" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="1240" height="1240" rx="240" fill="url(#bg)"/>
+
+  <!-- Subtle inner border -->
+  <rect x="1.5" y="1.5" width="1237" height="1237" rx="239" fill="none" stroke="white" stroke-opacity="0.05" stroke-width="3"/>
+
+  <!-- Ambient glow -->
+  <ellipse cx="620" cy="620" rx="340" ry="400" fill="url(#glow)"/>
+
+  <!-- Equalizer bars — 5 bars centered, pill-shaped, symmetric -->
+  <!-- Bar widths: 88px, gap: 28px, total: 5×88 + 4×28 = 552, start x: (1240-552)/2 = 344 -->
+
+  <!-- Bar 1 — short, faded -->
+  <rect x="344" y="516" width="88" height="208" rx="44" fill="#5b9cf6" opacity="0.25" filter="url(#blur-glow)"/>
+  <rect x="344" y="516" width="88" height="208" rx="44" fill="#5b9cf6" opacity="0.25"/>
+
+  <!-- Bar 2 — medium -->
+  <rect x="460" y="360" width="88" height="520" rx="44" fill="#5b9cf6" opacity="0.55" filter="url(#blur-glow)"/>
+  <rect x="460" y="360" width="88" height="520" rx="44" fill="#5b9cf6" opacity="0.55"/>
+
+  <!-- Bar 3 — tallest, center, full opacity -->
+  <rect x="576" y="168" width="88" height="904" rx="44" fill="#5b9cf6" filter="url(#blur-glow)"/>
+  <rect x="576" y="168" width="88" height="904" rx="44" fill="#5b9cf6"/>
+
+  <!-- Bar 4 — medium -->
+  <rect x="692" y="360" width="88" height="520" rx="44" fill="#5b9cf6" opacity="0.55" filter="url(#blur-glow)"/>
+  <rect x="692" y="360" width="88" height="520" rx="44" fill="#5b9cf6" opacity="0.55"/>
+
+  <!-- Bar 5 — short, faded -->
+  <rect x="808" y="516" width="88" height="208" rx="44" fill="#5b9cf6" opacity="0.25" filter="url(#blur-glow)"/>
+  <rect x="808" y="516" width="88" height="208" rx="44" fill="#5b9cf6" opacity="0.25"/>
+</svg>

@@ -161,10 +161,14 @@ pub enum AudioCmd {
     Resume {
         instance_id: String,
     },
+    SetMasterVolume {
+        volume: f32,
+    },
 }
 
 struct PlaybackInstance {
     sound_id: String,
+    base_volume: f32,
     sinks: Vec<Sink>,
     _streams: Vec<OutputStream>,
 }
@@ -231,6 +235,7 @@ pub fn start_audio_thread(app_handle: AppHandle) -> mpsc::Sender<AudioCmd> {
 
     thread::spawn(move || {
         let mut instances: HashMap<String, PlaybackInstance> = HashMap::new();
+        let mut master_volume: f32 = 1.0;
 
         loop {
             // Drain all pending commands
@@ -249,12 +254,7 @@ pub fn start_audio_thread(app_handle: AppHandle) -> mpsc::Sender<AudioCmd> {
                         let target_devices = if devices.is_empty() {
                             vec!["Default".to_string()]
                         } else {
-                            // Always include the speakers (Default) alongside any cable routing
-                            let mut d = devices.clone();
-                            if !d.iter().any(|x| x == "Default") {
-                                d.insert(0, "Default".to_string());
-                            }
-                            d
+                            devices.clone()
                         };
 
                         for device_name in &target_devices {
@@ -277,6 +277,7 @@ pub fn start_audio_thread(app_handle: AppHandle) -> mpsc::Sender<AudioCmd> {
                                 instance_id.clone(),
                                 PlaybackInstance {
                                     sound_id: sound_id.clone(),
+                                    base_volume: volume,
                                     sinks,
                                     _streams: streams,
                                 },
@@ -325,6 +326,13 @@ pub fn start_audio_thread(app_handle: AppHandle) -> mpsc::Sender<AudioCmd> {
                         if let Some(inst) = instances.get(&instance_id) {
                             for s in &inst.sinks { s.play(); }
                             let _ = app_handle.emit("sound-resumed", &instance_id);
+                        }
+                    }
+                    Ok(AudioCmd::SetMasterVolume { volume }) => {
+                        master_volume = volume.clamp(0.0, 2.0);
+                        for inst in instances.values() {
+                            let v = (inst.base_volume * master_volume).clamp(0.0, 2.0);
+                            for s in &inst.sinks { s.set_volume(v); }
                         }
                     }
                     Err(mpsc::TryRecvError::Empty) => break,

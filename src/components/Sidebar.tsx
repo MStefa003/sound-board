@@ -72,11 +72,11 @@ export default function Sidebar({
     return (
       <div
         className="flex flex-col items-center py-2 gap-2"
-        style={{ width: 28, background: '#0e0e0e', borderRight: '1px solid #1e1e1e', flexShrink: 0 }}
+        style={{ width: 28, background: 'var(--surface-1)', borderRight: '1px solid var(--border-dim)', flexShrink: 0 }}
       >
         <button
           onClick={() => setCollapsed(false)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#484848', padding: 4 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 4 }}
           title="Expand sidebar"
         >
           <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5V3z"/></svg>
@@ -88,20 +88,20 @@ export default function Sidebar({
   return (
     <div
       className="flex flex-col"
-      style={{ width: 158, minWidth: 158, background: '#0e0e0e', borderRight: '1px solid #1e1e1e', flexShrink: 0, overflow: 'hidden' }}
+      style={{ width: 164, minWidth: 164, background: 'var(--surface-1)', borderRight: '1px solid var(--border-dim)', flexShrink: 0, overflow: 'hidden' }}
       onClick={() => setCatCtxMenu(null)}
     >
       {/* Header */}
       <div
         className="flex items-center justify-between"
-        style={{ padding: '8px 10px 6px', borderBottom: '1px solid #191919' }}
+        style={{ padding: '8px 10px 7px', borderBottom: '1px solid var(--border-dim)' }}
       >
-        <span style={{ fontSize: 10, fontWeight: 600, color: '#484848', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', letterSpacing: '0.09em', textTransform: 'uppercase' }}>
           Categories
         </span>
         <button
           onClick={() => setCollapsed(true)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#383838', padding: 2 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 2 }}
           title="Collapse sidebar"
         >
           <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M10 13L5 8l5-5v10z"/></svg>
@@ -125,7 +125,7 @@ export default function Sidebar({
         />
 
         {categories.length > 0 && (
-          <div style={{ height: 1, background: '#191919', margin: '4px 8px' }} />
+          <div style={{ height: 1, background: 'var(--border-dim)', margin: '4px 8px' }} />
         )}
 
         {/* Named categories */}
@@ -238,8 +238,8 @@ function SidebarItem({ label, count, active, onClick, onContextMenu, onRename, o
       style={{
         display: 'flex',
         alignItems: 'center',
-        background: active ? '#1a1a1a' : hovered ? '#151515' : 'transparent',
-        borderLeft: active ? '2px solid #4f8ef7' : '2px solid transparent',
+        background: active ? 'var(--surface-2)' : hovered ? 'rgba(255,255,255,0.03)' : 'transparent',
+        borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
         transition: 'background 0.1s',
         paddingRight: 4,
       }}
@@ -255,17 +255,17 @@ function SidebarItem({ label, count, active, onClick, onContextMenu, onRename, o
           background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
         }}
       >
-        <span style={{ color: active ? '#4f8ef7' : '#484848', flexShrink: 0 }}>{icon}</span>
+        <span style={{ color: active ? 'var(--accent)' : 'var(--text-3)', flexShrink: 0 }}>{icon}</span>
         <span style={{
-          fontSize: 12, color: active ? '#d8d8d8' : '#888',
+          fontSize: 12.5, color: active ? 'var(--text-1)' : 'var(--text-2)',
           fontWeight: active ? 500 : 400,
           flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {label}
         </span>
         <span style={{
-          fontSize: 10, color: '#484848', background: '#191919',
-          borderRadius: 10, padding: '1px 5px', fontVariantNumeric: 'tabular-nums', flexShrink: 0,
+          fontSize: 10, color: 'var(--text-4)', background: 'var(--surface-2)',
+          borderRadius: 10, padding: '1px 6px', fontVariantNumeric: 'tabular-nums', flexShrink: 0,
         }}>
           {count}
         </span>
@@ -276,10 +276,10 @@ function SidebarItem({ label, count, active, onClick, onContextMenu, onRename, o
         <div className="flex items-center gap-0.5" style={{ flexShrink: 0, paddingRight: 2 }}>
           <button
             onClick={e => { e.stopPropagation(); onRename?.(); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#484848', padding: '2px 3px', borderRadius: 3 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: '2px 3px', borderRadius: 3 }}
             title="Rename"
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#909090'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#484848'; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-1)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-3)'; }}
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -288,10 +288,10 @@ function SidebarItem({ label, count, active, onClick, onContextMenu, onRename, o
           </button>
           <button
             onClick={e => { e.stopPropagation(); onDelete?.(); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#484848', padding: '2px 3px', borderRadius: 3 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: '2px 3px', borderRadius: 3 }}
             title="Delete category"
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#f87171'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#484848'; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--danger)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-3)'; }}
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="3 6 5 6 21 6"/>

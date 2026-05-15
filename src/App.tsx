@@ -1,9 +1,7 @@
 ﻿import { useEffect, useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { register, unregister } from '@tauri-apps/plugin-global-shortcut';
-import { check } from '@tauri-apps/plugin-updater';
-import { relaunch } from '@tauri-apps/plugin-process';
+import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-shortcut';
 import './App.css';
 
 import { Sound, PlayingInstance } from './types';
@@ -38,13 +36,6 @@ export default function App() {
   const [showDriverSetup, setShowDriverSetup] = useState(false);
   const [errorToast, setErrorToast] = useState<string | null>(null);
 
-  // Auto-updater state
-  type UpdateBannerState = 'hidden' | 'available' | 'downloading' | 'ready';
-  const [updateBanner, setUpdateBanner] = useState<UpdateBannerState>('hidden');
-  const [updateVersion, setUpdateVersion] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [pendingUpdate, setPendingUpdate] = useState<any>(null);
-
   // Compute effective output devices based on play mode
   const effectiveDevices = useCallback((mode: PlayMode, configured: string[], all: string[]) => {
     if (mode === 'speakers') {
@@ -71,17 +62,6 @@ export default function App() {
     invoke<boolean>('check_vbcable_installed').then(installed => {
       if (!installed) setShowDriverSetup(true);
     });
-    // Silently check for updates 3 seconds after startup
-    setTimeout(async () => {
-      try {
-        const update = await check();
-        if (update?.available) {
-          setUpdateVersion(update.version ?? null);
-          setPendingUpdate(update);
-          setUpdateBanner('available');
-        }
-      } catch (_) { /* no update endpoint yet or offline */ }
-    }, 3000);
   }, []);
 
   // Tauri audio event listeners
@@ -116,24 +96,18 @@ export default function App() {
     };
   }, []);
 
-  // Hotkey listener
+  // Register hotkeys — always start fresh to prevent handler stacking
   useEffect(() => {
-    const unlisten = listen<string>('hotkey-pressed', e => {
-      const hotkey = e.payload;
-      const sound = sounds.find(s => s.hotkey === hotkey);
-      if (sound) playSound(sound);
-    });
-    return () => { unlisten.then(fn => fn()); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sounds]);
-
-  // Register hotkeys
-  useEffect(() => {
-    sounds.forEach(async sound => {
-      if (sound.hotkey) {
-        try { await register(sound.hotkey, () => {}); } catch (_) {}
+    let alive = true;
+    (async () => {
+      await unregisterAll().catch(() => {});
+      if (!alive) return;
+      for (const sound of sounds) {
+        if (!alive || !sound.hotkey) continue;
+        try { await register(sound.hotkey, () => playSound(sound)); } catch (_) {}
       }
-    });
+    })();
+    return () => { alive = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sounds.map(s => s.hotkey).join(',')]);
 
@@ -216,9 +190,7 @@ export default function App() {
     if (existing?.hotkey && existing.hotkey !== sound.hotkey) {
       try { await unregister(existing.hotkey); } catch (_) {}
     }
-    if (sound.hotkey) {
-      try { await register(sound.hotkey, () => {}); } catch (_) {}
-    }
+    // Registration is handled by the hotkey effect — don't register here to avoid duplicates
     const updated = existing
       ? sounds.map(s => (s.id === sound.id ? sound : s))
       : [...sounds, sound];
@@ -266,7 +238,7 @@ export default function App() {
     : false;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#0c0c0c' }}>
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: 'var(--bg)' }}>
       <Titlebar />
       <Toolbar
         searchQuery={searchQuery}
@@ -364,80 +336,12 @@ export default function App() {
         <div
           style={{
             position: 'fixed', bottom: 42, left: '50%', transform: 'translateX(-50%)',
-            background: '#1e1010', border: '1px solid #5a2020', borderRadius: 8, padding: '10px 18px',
-            fontSize: 12, color: '#f87171', maxWidth: 420,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.7)',
+            background: 'var(--surface-2)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 8, padding: '10px 18px',
+            fontSize: 12.5, color: 'var(--danger)', maxWidth: 420,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           }}
         >
           ⚠ Audio error: {errorToast}
-        </div>
-      )}
-
-      {/* ── Update banner ── */}
-      {updateBanner !== 'hidden' && (
-        <div style={{
-          position: 'fixed', bottom: 42, right: 16,
-          background: '#111', border: '1px solid rgba(79,142,247,0.3)',
-          borderRadius: 10, padding: '10px 14px',
-          display: 'flex', alignItems: 'center', gap: 12,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-          zIndex: 99,
-          maxWidth: 340,
-        }}>
-          <div style={{ flex: 1 }}>
-            {updateBanner === 'available' && (
-              <>
-                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: '#c8c8c8' }}>
-                  Update available — v{updateVersion}
-                </p>
-                <p style={{ margin: '2px 0 0', fontSize: 11, color: '#444' }}>
-                  Click to download and restart.
-                </p>
-              </>
-            )}
-            {updateBanner === 'downloading' && (
-              <p style={{ margin: 0, fontSize: 12.5, color: '#888' }}>Downloading update…</p>
-            )}
-            {updateBanner === 'ready' && (
-              <p style={{ margin: 0, fontSize: 12.5, color: '#22c55e' }}>Update ready — restarting…</p>
-            )}
-          </div>
-
-          {updateBanner === 'available' && (
-            <button
-              onClick={async () => {
-                if (!pendingUpdate) return;
-                setUpdateBanner('downloading');
-                try {
-                  await pendingUpdate.downloadAndInstall();
-                  setUpdateBanner('ready');
-                  setTimeout(() => relaunch(), 1500);
-                } catch (e) {
-                  console.error(e);
-                  setUpdateBanner('hidden');
-                }
-              }}
-              style={{
-                padding: '6px 14px', borderRadius: 6, border: 'none',
-                background: '#4f8ef7', color: '#fff',
-                fontSize: 11.5, fontWeight: 600, cursor: 'pointer', flexShrink: 0,
-              }}
-            >
-              Update
-            </button>
-          )}
-
-          {updateBanner === 'available' && (
-            <button
-              onClick={() => setUpdateBanner('hidden')}
-              style={{
-                width: 20, height: 20, borderRadius: 4, border: 'none',
-                background: 'transparent', color: '#333', cursor: 'pointer',
-                fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >×</button>
-          )}
         </div>
       )}
     </div>

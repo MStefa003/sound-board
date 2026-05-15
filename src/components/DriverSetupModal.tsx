@@ -41,15 +41,15 @@ export default function DriverSetupModal({ onSkip }: DriverSetupModalProps) {
       <div
         className="modal-content flex flex-col"
         style={{
-          background: '#181818',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: 'var(--surface-1)',
+          border: '1px solid var(--border)',
           borderRadius: 14,
           width: 420,
           overflow: 'hidden',
         }}
       >
         {/* Header stripe */}
-        <div style={{ height: 3, background: '#333' }} />
+        <div style={{ height: 3, background: 'var(--accent)' }} />
 
         <div className="flex flex-col gap-5 p-7">
           {/* Icon + title */}
@@ -57,33 +57,33 @@ export default function DriverSetupModal({ onSkip }: DriverSetupModalProps) {
             <div
               style={{
                 width: 44, height: 44, borderRadius: 10, flexShrink: 0,
-                background: '#1e1e1e', border: '1px solid rgba(255,255,255,0.09)',
+                background: 'var(--surface-2)', border: '1px solid var(--border-dim)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
               {step === 'installing' || step === 'rebooting' ? (
-                <Loader size={20} style={{ color: '#666', animation: 'spin 1s linear infinite' }} />
+                <Loader size={20} style={{ color: 'var(--text-3)', animation: 'spin 1s linear infinite' }} />
               ) : step === 'done' ? (
-                <CheckCircle size={20} style={{ color: '#22c55e' }} />
+                <CheckCircle size={20} style={{ color: 'var(--green)' }} />
               ) : step === 'error' ? (
-                <AlertCircle size={20} style={{ color: '#f87171' }} />
+                <AlertCircle size={20} style={{ color: 'var(--danger)' }} />
               ) : (
-                <Download size={20} style={{ color: '#888' }} />
+                <Download size={20} style={{ color: 'var(--text-2)' }} />
               )}
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#e8e8e8', marginBottom: 4 }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>
                 {step === 'prompt'     && 'VB-Audio Virtual Cable not found'}
                 {step === 'installing' && 'Launching installer…'}
                 {step === 'done'       && 'Installer launched — restart required'}
                 {step === 'rebooting'  && 'Restarting in 5 seconds…'}
                 {step === 'error'      && 'Something went wrong'}
               </p>
-              <p style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6 }}>
                 {step === 'prompt' && (
                   <>
                     SoundPad routes audio through your mic using VB-Audio Virtual Cable.
-                    It is <strong style={{ color: '#777' }}>free</strong> and only takes a minute to install.
+                    It is <strong style={{ color: 'var(--text-2)' }}>free</strong> and only takes a minute to install.
                   </>
                 )}
                 {step === 'installing' && 'A UAC prompt will appear — click Yes to allow the driver to install. After setup completes come back here.'}
@@ -98,11 +98,11 @@ export default function DriverSetupModal({ onSkip }: DriverSetupModalProps) {
           {step === 'prompt' && (
             <div
               style={{
-                background: '#141414', border: '1px solid rgba(255,255,255,0.07)',
+                background: 'var(--bg)', border: '1px solid var(--border-dim)',
                 borderRadius: 9, padding: '12px 14px',
               }}
             >
-              <p style={{ fontSize: 11, color: '#555', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+              <p style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
                 What happens
               </p>
               {[
@@ -112,7 +112,7 @@ export default function DriverSetupModal({ onSkip }: DriverSetupModalProps) {
                 '4. Select "CABLE Input" as output in SoundPad settings',
                 '5. In Discord, set "CABLE Output" as your microphone',
               ].map((line, i) => (
-                <p key={i} style={{ fontSize: 12, color: '#484848', lineHeight: 1.7 }}>{line}</p>
+                <p key={i} style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.7 }}>{line}</p>
               ))}
             </div>
           )}
@@ -132,7 +132,7 @@ export default function DriverSetupModal({ onSkip }: DriverSetupModalProps) {
             )}
 
             {step === 'installing' && (
-              <p style={{ fontSize: 12, color: '#555' }}>
+              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>
                 Complete the installer window, then click below…
               </p>
             )}
@@ -171,7 +171,7 @@ export default function DriverSetupModal({ onSkip }: DriverSetupModalProps) {
             )}
 
             {step === 'rebooting' && (
-              <p style={{ fontSize: 12, color: '#505050' }}>Saving your work…</p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Saving your work…</p>
             )}
           </div>
         </div>

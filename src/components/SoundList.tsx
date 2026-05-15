@@ -136,7 +136,7 @@ export default function SoundList({
 
   if (filtered.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 gap-3" style={{ color: '#383838' }}>
+      <div className="flex flex-col items-center justify-center flex-1 gap-3" style={{ color: 'var(--text-4)' }}>
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M9 19V6l12-3v13"/>
           <circle cx="6" cy="19" r="3"/><circle cx="18" cy="16" r="3"/>
@@ -154,7 +154,7 @@ export default function SoundList({
     <div className="flex flex-col flex-1 overflow-hidden" style={{ position: 'relative' }}>
       <div
         className="flex-1 overflow-auto"
-        style={{ background: '#0c0c0c' }}
+        style={{ background: 'var(--bg)' }}
         onClick={e => {
           closeCtx();
           // Click on empty area clears selection
@@ -169,7 +169,7 @@ export default function SoundList({
                 {anyChecked && (
                   <button
                     onClick={clearSelection}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4f8ef7', fontSize: 10, padding: 2 }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 10, padding: 2 }}
                     title="Clear selection"
                   >
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
@@ -181,7 +181,7 @@ export default function SoundList({
               </th>
               <th style={{ width: 36, textAlign: 'right', paddingRight: 10 }}>#</th>
               <th style={{ textAlign: 'left', paddingLeft: 8 }}>Name</th>
-              <th style={{ width: 90, textAlign: 'left', paddingLeft: 8, color: '#383838' }}>Category</th>
+              <th style={{ width: 90, textAlign: 'left', paddingLeft: 8, color: 'var(--text-4)' }}>Category</th>
               <th style={{ width: 66, textAlign: 'right', paddingRight: 12 }}>Duration</th>
               <th style={{ width: 100, textAlign: 'left', paddingLeft: 8 }}>Hotkey</th>
               <th style={{ width: 36 }} />
@@ -216,7 +216,7 @@ export default function SoundList({
                   </td>
 
                   {/* Row number / play indicator */}
-                  <td style={{ width: 36, textAlign: 'right', paddingRight: 10, color: '#484848', fontSize: 11 }}>
+                  <td style={{ width: 36, textAlign: 'right', paddingRight: 10, color: 'var(--text-4)', fontSize: 11 }}>
                     {playing && !paused ? (
                       <span className="list-wave" style={{ '--accent': accentColor } as React.CSSProperties}>
                         <span /><span /><span />
@@ -232,7 +232,7 @@ export default function SoundList({
                   <td style={{ paddingLeft: 8 }}>
                     <div className="flex items-center gap-2">
                       <span className="list-accent-dot" style={{ background: accentColor, opacity: playing ? 1 : 0.3 }} />
-                      <span style={{ fontSize: 12.5, fontWeight: playing ? 500 : 400, color: playing ? '#e8e8e8' : '#b0b0b0' }}>
+                      <span style={{ fontSize: 13, fontWeight: playing ? 500 : 400, color: playing ? 'var(--text-1)' : 'var(--text-2)' }}>
                         {sound.name}
                       </span>
                     </div>
@@ -242,11 +242,11 @@ export default function SoundList({
                   <td style={{ width: 90, paddingLeft: 8 }}>
                     {sound.category && (
                       <span style={{
-                        fontSize: 10.5, color: '#606060', background: '#191919',
-                        border: '1px solid rgba(255,255,255,0.06)',
+                        fontSize: 11, color: 'var(--text-3)', background: 'var(--surface-2)',
+                        border: '1px solid var(--border-dim)',
                         borderRadius: 10, padding: '1px 7px',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        display: 'block', maxWidth: 80,
+                        display: 'block', maxWidth: 84,
                       }}>
                         {sound.category}
                       </span>
@@ -254,7 +254,7 @@ export default function SoundList({
                   </td>
 
                   {/* Duration */}
-                  <td style={{ width: 66, textAlign: 'right', paddingRight: 12, color: '#555', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
+                  <td style={{ width: 66, textAlign: 'right', paddingRight: 12, color: 'var(--text-3)', fontSize: 11.5, fontVariantNumeric: 'tabular-nums' }}>
                     {sound.duration ? formatDuration(sound.duration) : '—'}
                   </td>
 
