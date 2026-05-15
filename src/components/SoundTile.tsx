@@ -38,14 +38,14 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
   return (
     <>
       <div
-        className="group relative flex flex-col cursor-pointer"
+        className="group sound-tile relative flex flex-col cursor-pointer"
         style={{
           background: isPlaying ? "var(--surface-2)" : "var(--surface-1)",
           border: `1px solid ${isPlaying ? "var(--border)" : "var(--border-dim)"}`,
           borderLeft: `3px solid ${accent}`,
-          borderRadius: 8,
+          borderRadius: 10,
           minHeight: 90,
-          transition: "background 0.12s, border-color 0.12s, box-shadow 0.18s",
+          transition: "background 0.12s, border-color 0.12s, box-shadow 0.18s, transform 0.14s",
           overflow: "hidden",
           boxShadow: isPlaying ? `0 0 0 1px ${accent}28, 0 4px 18px ${accent}18` : "none",
         }}
@@ -55,18 +55,22 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
           const el = e.currentTarget as HTMLElement;
           el.style.background = isPlaying ? "var(--surface-3)" : "var(--surface-2)";
           el.style.borderColor = "var(--border)";
+          el.style.transform = "translateY(-2px)";
+          el.style.boxShadow = isPlaying ? `0 0 0 1px ${accent}28, 0 8px 24px ${accent}22` : "0 4px 14px rgba(0,0,0,0.35)";
         }}
         onMouseLeave={e => {
           const el = e.currentTarget as HTMLElement;
           el.style.background = isPlaying ? "var(--surface-2)" : "var(--surface-1)";
           el.style.borderColor = isPlaying ? "var(--border)" : "var(--border-dim)";
+          el.style.transform = "translateY(0)";
+          el.style.boxShadow = isPlaying ? `0 0 0 1px ${accent}28, 0 4px 18px ${accent}18` : "none";
         }}
       >
         {isPlaying && (
           <div
             className="tile-playing-bar"
             style={{
-              position: "absolute", top: 0, left: -3, right: 0, height: 2,
+              position: "absolute", top: 0, left: -3, right: 0, height: 3,
               background: accent, borderRadius: "0 2px 0 0",
             }}
           />

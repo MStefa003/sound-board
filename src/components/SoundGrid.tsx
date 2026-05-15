@@ -78,6 +78,15 @@ export default function SoundGrid({
               onSetCategory={onSetCategory}
             />
           ))}
+          {/* Ghost add-sound tile */}
+          <div
+            className="add-sound-tile"
+            onClick={onAddSound}
+            title="Add Sound"
+          >
+            <Plus size={20} strokeWidth={1.5} style={{ color: 'var(--text-4)' }} />
+            <span style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 4 }}>Add Sound</span>
+          </div>
           {/* Add tile */}
           {!searchQuery && (
             <button

@@ -177,7 +177,7 @@ export default function Toolbar({
           />
           <input
             className="sp-input"
-            style={{ paddingLeft: 30, height: 28, fontSize: 12, borderRadius: 6 }}
+            style={{ paddingLeft: 30, height: 28, fontSize: 12, borderRadius: 14 }}
             type="text"
             placeholder="Search sounds…"
             value={searchQuery}
