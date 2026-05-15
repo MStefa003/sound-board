@@ -261,8 +261,9 @@ pub fn start_audio_thread(app_handle: AppHandle) -> mpsc::Sender<AudioCmd> {
                             if let Ok((stream, handle)) = get_output_stream(device_name) {
                                 if let Ok(sink) = Sink::try_new(&handle) {
                                     if let Ok(file) = File::open(&path) {
-                                        if let Ok(source) = Decoder::new(BufReader::new(file)) {
-                                            sink.set_volume(volume);
+                                        if let Ok(source) = Decoder::new(BufReader::with_capacity(512 * 1024, file)) {
+                                            let effective_vol = (volume * master_volume).clamp(0.0, 2.0);
+                                            sink.set_volume(effective_vol);
                                             sink.append(source);
                                             sinks.push(sink);
                                             streams.push(stream);
@@ -353,7 +354,7 @@ pub fn start_audio_thread(app_handle: AppHandle) -> mpsc::Sender<AudioCmd> {
                 }
             }
 
-            thread::sleep(Duration::from_millis(50));
+            thread::sleep(Duration::from_millis(20));
         }
     });
 

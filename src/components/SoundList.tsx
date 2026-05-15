@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback, useRef } from 'react';
+﻿import React, { useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { Sound, PlayingInstance, formatDuration, TILE_COLORS } from '../types';
 import AssignCategoryModal from './AssignCategoryModal';
 
@@ -38,6 +38,7 @@ export default function SoundList({
   const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categoryTargetIds, setCategoryTargetIds] = useState<string[]>([]);
+  const [fileDragOver, setFileDragOver] = useState(false);
   const ctxRef = useRef<HTMLDivElement>(null);
   const lastCheckedRef = useRef<string | null>(null);
 
@@ -105,6 +106,26 @@ export default function SoundList({
 
   const closeCtx = useCallback(() => setCtxMenu(null), []);
 
+  useLayoutEffect(() => {
+    if (!ctxMenu || !ctxRef.current) return;
+    const rect = ctxRef.current.getBoundingClientRect();
+    const x = Math.min(ctxMenu.x, window.innerWidth - rect.width - 4);
+    const y = Math.min(ctxMenu.y, window.innerHeight - rect.height - 4);
+    ctxRef.current.style.left = x + 'px';
+    ctxRef.current.style.top = y + 'px';
+  }, [ctxMenu]);
+
+  const handleFileDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.types.includes('Files')) setFileDragOver(true);
+  }, []);
+
+  const handleFileDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setFileDragOver(false);
+    // Actual file handling is done by Tauri's onDragDropEvent in App.tsx
+  }, []);
+
   const openCategoryModal = (ids: string[]) => {
     setCategoryTargetIds(ids);
     setShowCategoryModal(true);
@@ -136,13 +157,19 @@ export default function SoundList({
 
   if (filtered.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 gap-3" style={{ color: 'var(--text-4)' }}>
+      <div
+        className={`flex flex-col items-center justify-center flex-1 gap-3${fileDragOver ? ' drag-over' : ''}`}
+        style={{ color: 'var(--text-4)' }}
+        onDragOver={handleFileDragOver}
+        onDragLeave={() => setFileDragOver(false)}
+        onDrop={handleFileDrop}
+      >
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M9 19V6l12-3v13"/>
           <circle cx="6" cy="19" r="3"/><circle cx="18" cy="16" r="3"/>
         </svg>
         <span style={{ fontSize: 13 }}>
-          {searchQuery ? 'No sounds match your search' : 'No sounds yet — add one with the + button'}
+          {searchQuery ? 'No sounds match your search' : 'No sounds yet — drag a file here or click + Add Sound'}
         </span>
       </div>
     );
@@ -151,7 +178,13 @@ export default function SoundList({
   const anyChecked = checkedIds.size > 0;
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden" style={{ position: 'relative' }}>
+    <div
+      className={`flex flex-col flex-1 overflow-hidden${fileDragOver ? ' drag-over' : ''}`}
+      style={{ position: 'relative' }}
+      onDragOver={handleFileDragOver}
+      onDragLeave={() => setFileDragOver(false)}
+      onDrop={handleFileDrop}
+    >
       <div
         className="flex-1 overflow-auto"
         style={{ background: 'var(--bg)' }}
