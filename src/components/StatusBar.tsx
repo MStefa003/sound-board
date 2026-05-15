@@ -67,6 +67,9 @@ export default function StatusBar({ soundCount, playingCount, masterVolume, sele
           ? selectedDevices.join(' · ')
           : 'no output device — open settings'}
       </span>
+
+      <span style={{ margin: '0 10px', color: 'var(--border-dim)' }}>·</span>
+      <span style={{ fontSize: 10.5, color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>v1.1.3</span>
     </div>
   );
 }

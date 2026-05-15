@@ -45,15 +45,16 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
           borderLeft: `3px solid ${accent}`,
           borderRadius: 8,
           minHeight: 90,
-          transition: "background 0.12s, border-color 0.12s",
+          transition: "background 0.12s, border-color 0.12s, box-shadow 0.18s",
           overflow: "hidden",
+          boxShadow: isPlaying ? `0 0 0 1px ${accent}28, 0 4px 18px ${accent}18` : "none",
         }}
         onClick={toggle}
         onContextMenu={e => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY }); }}
         onMouseEnter={e => {
           const el = e.currentTarget as HTMLElement;
           el.style.background = isPlaying ? "var(--surface-3)" : "var(--surface-2)";
-          el.style.borderColor = isPlaying ? "var(--border)" : "var(--border)";
+          el.style.borderColor = "var(--border)";
         }}
         onMouseLeave={e => {
           const el = e.currentTarget as HTMLElement;
@@ -101,6 +102,17 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
                 borderRadius: 3, padding: "1px 4px",
               }}>
                 {sound.hotkey}
+              </span>
+            )}
+            {sound.category && (
+              <span style={{
+                fontSize: 9, color: "var(--text-4)",
+                background: "var(--surface-3)",
+                border: "1px solid var(--border-dim)",
+                borderRadius: 3, padding: "1px 5px",
+                maxWidth: 56, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {sound.category}
               </span>
             )}
             <div style={{ flex: 1 }} />
