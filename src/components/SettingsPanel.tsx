@@ -469,6 +469,23 @@ export default function SettingsPanel({
                       <span style={{ fontSize: 12.5, color: "var(--text-2)" }}>{value}</span>
                     </div>
                   ))}
+                  <div style={{
+                    display: "flex", alignItems: "baseline", justifyContent: "space-between",
+                    padding: "9px 0",
+                    borderBottom: "1px solid var(--border-dim)",
+                  }}>
+                    <span style={{ fontSize: 12.5, color: "var(--text-3)" }}>Created &amp; maintained by</span>
+                    <a
+                      href="https://github.com/MStefa003"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 12.5, color: "var(--accent)", textDecoration: "none" }}
+                      onMouseEnter={e => (e.currentTarget.style.textDecoration = "underline")}
+                      onMouseLeave={e => (e.currentTarget.style.textDecoration = "none")}
+                    >
+                      MStefa003
+                    </a>
+                  </div>
                 </div>
               </Section>
             )}
