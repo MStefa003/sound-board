@@ -3,6 +3,9 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-shortcut';
+import { check, type Update } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { Download, X, Loader2 } from 'lucide-react';
 import './App.css';
 
 import { Sound, PlayingInstance } from './types';
@@ -12,6 +15,7 @@ import SoundGrid from './components/SoundGrid';
 import SoundList from './components/SoundList';
 import Sidebar from './components/Sidebar';
 import AddSoundModal from './components/AddSoundModal';
+import DownloadModal from './components/DownloadModal';
 import SettingsPanel from './components/SettingsPanel';
 import StatusBar from './components/StatusBar';
 import DriverSetupModal from './components/DriverSetupModal';
@@ -35,7 +39,10 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [dropPath, setDropPath] = useState<string | undefined>(undefined);
   const [showDriverSetup, setShowDriverSetup] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [errorToast, setErrorToast] = useState<string | null>(null);
+  const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null);
+  const [isInstalling, setIsInstalling] = useState(false);
 
   // Compute effective output devices based on play mode
   const effectiveDevices = useCallback((mode: PlayMode, configured: string[], all: string[]) => {
@@ -105,7 +112,7 @@ export default function App() {
       if (!alive) return;
       for (const sound of sounds) {
         if (!alive || !sound.hotkey) continue;
-        try { await register(sound.hotkey, () => playSound(sound)); } catch (_) {}
+        try { await register(sound.hotkey, e => { if (e.state === 'Pressed') playSound(sound); }); } catch (_) {}
       }
     })();
     return () => { alive = false; };
@@ -116,6 +123,20 @@ export default function App() {
   useEffect(() => {
     invoke('set_master_volume', { volume: masterVolume });
   }, [masterVolume]);
+
+  // Check for updates on startup
+  useEffect(() => {
+    check().then(u => { if (u?.available) setPendingUpdate(u); }).catch(() => {});
+  }, []);
+
+  const handleInstallUpdate = async () => {
+    if (!pendingUpdate) return;
+    setIsInstalling(true);
+    try {
+      await pendingUpdate.downloadAndInstall();
+      await relaunch();
+    } catch { setIsInstalling(false); }
+  };
 
   const playSound = useCallback(async (sound: Sound) => {
     try {
@@ -146,7 +167,8 @@ export default function App() {
     if (activeCategory === '__none__') return !s.category;
     if (activeCategory) return s.category === activeCategory;
     return true;
-  }).filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }).filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
 
   const playPrev = useCallback(async () => {
     const playing = playingInstances[0];
@@ -208,6 +230,30 @@ export default function App() {
     const updated = sounds.map(s => ids.includes(s.id) ? { ...s, category } : s);
     saveSounds(updated);
   }, [sounds, saveSounds]);
+
+  const handleToggleFavorite = useCallback((id: string) => {
+    saveSounds(sounds.map(s => s.id === id ? { ...s, favorite: !s.favorite } : s));
+  }, [sounds, saveSounds]);
+
+  const handleShowInExplorer = useCallback(async (sound: Sound) => {
+    try { await invoke('show_in_explorer', { path: sound.path }); } catch (err) { console.error(err); }
+  }, []);
+
+  const handleDownloadComplete = useCallback(async (filePath: string, title: string) => {
+    let duration: number | null = null;
+    try { duration = await invoke<number>('get_sound_duration', { path: filePath }); } catch {}
+    const newSound: Sound = {
+      id: crypto.randomUUID(),
+      name: title,
+      path: filePath,
+      hotkey: null,
+      volume: 1.0,
+      color: 'grey',
+      duration,
+      category: null,
+    };
+    handleSaveSound(newSound);
+  }, [handleSaveSound]);
 
   const handleRenameCategory = useCallback(async (oldName: string, newName: string) => {
     const updated = sounds.map(s => s.category === oldName ? { ...s, category: newName } : s);
@@ -281,6 +327,7 @@ export default function App() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onAddSound={() => { setDropPath(undefined); setEditingSound(null); setShowAddModal(true); }}
+        onOpenDownload={() => setShowDownloadModal(true)}
         onStopAll={stopAll}
         onOpenSettings={() => setShowSettings(true)}
         playingCount={playingInstances.length}
@@ -319,6 +366,8 @@ export default function App() {
             onDelete={handleDeleteSound}
             onEdit={s => { setEditingSound(s); setDropPath(undefined); setShowAddModal(true); }}
             onSetCategory={handleSetCategory}
+            onToggleFavorite={handleToggleFavorite}
+            onShowInExplorer={handleShowInExplorer}
           />
         ) : (
           <SoundGrid
@@ -331,6 +380,8 @@ export default function App() {
             onDelete={handleDeleteSound}
             onEdit={s => { setEditingSound(s); setDropPath(undefined); setShowAddModal(true); }}
             onSetCategory={handleSetCategory}
+            onToggleFavorite={handleToggleFavorite}
+            onShowInExplorer={handleShowInExplorer}
             onAddSound={() => { setDropPath(undefined); setEditingSound(null); setShowAddModal(true); }}
             canReorder={!searchQuery && !activeCategory}
             onReorder={saveSounds}
@@ -357,6 +408,12 @@ export default function App() {
           }}
         />
       )}
+      {showDownloadModal && (
+        <DownloadModal
+          onClose={() => setShowDownloadModal(false)}
+          onDownloaded={handleDownloadComplete}
+        />
+      )}
       {showSettings && (
         <SettingsPanel
           availableDevices={availableDevices}
@@ -380,6 +437,62 @@ export default function App() {
           }}
         >
           ⚠ Audio error: {errorToast}
+        </div>
+      )}
+      {pendingUpdate && (
+        <div style={{
+          position: 'fixed', bottom: 50, right: 16, zIndex: 1500,
+          background: 'var(--surface-2)',
+          border: '1px solid rgba(91,156,246,0.3)',
+          borderRadius: 12, padding: '14px 16px',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)',
+          display: 'flex', flexDirection: 'column', gap: 10,
+          minWidth: 272,
+          animation: 'sp-slide-in-right 0.25s cubic-bezier(0.16,1,0.3,1)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+              background: 'rgba(91,156,246,0.15)', border: '1px solid rgba(91,156,246,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)',
+            }}>
+              <Download size={15} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>Update available</div>
+              <div style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2 }}>
+                v{pendingUpdate.version} is ready to install
+              </div>
+            </div>
+            <button
+              className="sp-btn sp-btn-ghost"
+              onClick={() => setPendingUpdate(null)}
+              style={{ width: 22, height: 22, padding: 0, flexShrink: 0 }}
+              disabled={isInstalling}
+            >
+              <X size={12} />
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              className="sp-btn sp-btn-ghost"
+              onClick={() => setPendingUpdate(null)}
+              style={{ flex: 1 }}
+              disabled={isInstalling}
+            >
+              Later
+            </button>
+            <button
+              className="sp-btn sp-btn-accent"
+              onClick={handleInstallUpdate}
+              disabled={isInstalling}
+              style={{ flex: 1, gap: 5 }}
+            >
+              {isInstalling
+                ? <><Loader2 size={12} className="animate-spin" />Installing…</>
+                : <><Download size={12} />Update now</>}
+            </button>
+          </div>
         </div>
       )}
     </div>

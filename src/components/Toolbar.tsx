@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { Search, Plus, Square, Settings, Volume2, X, LayoutGrid, List, SkipBack, SkipForward, Pause, Play, Mic, Speaker, Headphones } from 'lucide-react';
+import { Search, Plus, Square, Settings, Volume2, X, LayoutGrid, List, SkipBack, SkipForward, Pause, Play, Mic, Speaker, Headphones, Download } from 'lucide-react';
 import { ViewMode, PlayMode } from '../App';
 import { Sound } from '../types';
 
@@ -7,6 +7,7 @@ interface ToolbarProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   onAddSound: () => void;
+  onOpenDownload: () => void;
   onStopAll: () => void;
   onOpenSettings: () => void;
   playingCount: number;
@@ -34,7 +35,7 @@ export default function Toolbar({
   searchQuery, onSearchChange, onAddSound, onStopAll, onOpenSettings,
   playingCount, hasPlaying, masterVolume, onMasterVolumeChange,
   viewMode, onViewModeChange, playMode, onPlayModeChange,
-  currentlyPlaying, isPaused, onPauseResume, onPrev, onNext,
+  currentlyPlaying, isPaused, onPauseResume, onPrev, onNext, onOpenDownload,
 }: ToolbarProps) {
   return (
     <div
@@ -248,6 +249,15 @@ export default function Toolbar({
         <button className="sp-btn sp-btn-accent" onClick={onAddSound} style={{ gap: 5 }}>
           <Plus size={13} />
           Add Sound
+        </button>
+
+        <button
+          className="sp-btn sp-btn-ghost"
+          onClick={onOpenDownload}
+          title="Download audio from URL (YouTube, SoundCloud…)"
+          style={{ width: 30, padding: 0 }}
+        >
+          <Download size={14} />
         </button>
 
         <button

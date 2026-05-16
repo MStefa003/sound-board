@@ -257,20 +257,30 @@ pub fn start_audio_thread(app_handle: AppHandle) -> mpsc::Sender<AudioCmd> {
                             devices.clone()
                         };
 
+                        let mut last_err = String::from("No output device configured");
+
                         for device_name in &target_devices {
-                            if let Ok((stream, handle)) = get_output_stream(device_name) {
-                                if let Ok(sink) = Sink::try_new(&handle) {
-                                    if let Ok(file) = File::open(&path) {
-                                        if let Ok(source) = Decoder::new(BufReader::with_capacity(512 * 1024, file)) {
-                                            let effective_vol = (volume * master_volume).clamp(0.0, 2.0);
-                                            sink.set_volume(effective_vol);
-                                            sink.append(source);
-                                            sinks.push(sink);
-                                            streams.push(stream);
-                                        }
-                                    }
-                                }
-                            }
+                            let (stream, handle) = match get_output_stream(device_name) {
+                                Ok(v) => v,
+                                Err(e) => { last_err = format!("Device '{}': {}", device_name, e); continue; }
+                            };
+                            let sink = match Sink::try_new(&handle) {
+                                Ok(v) => v,
+                                Err(e) => { last_err = format!("Sink '{}': {}", device_name, e); continue; }
+                            };
+                            let file = match File::open(&path) {
+                                Ok(v) => v,
+                                Err(e) => { last_err = format!("File '{}': {}", path, e); continue; }
+                            };
+                            let source = match Decoder::new(BufReader::with_capacity(512 * 1024, file)) {
+                                Ok(v) => v,
+                                Err(e) => { last_err = format!("Decode '{}': {}", path, e); continue; }
+                            };
+                            let effective_vol = (volume * master_volume).clamp(0.0, 2.0);
+                            sink.set_volume(effective_vol);
+                            sink.append(source);
+                            sinks.push(sink);
+                            streams.push(stream);
                         }
 
                         if !sinks.is_empty() {
@@ -291,13 +301,12 @@ pub fn start_audio_thread(app_handle: AppHandle) -> mpsc::Sender<AudioCmd> {
                                 },
                             );
                         } else {
-                            // Emit error event so UI doesn't hang
                             let _ = app_handle.emit(
                                 "sound-error",
                                 serde_json::json!({
                                     "instanceId": instance_id,
                                     "soundId": sound_id,
-                                    "error": "Failed to open audio device or file"
+                                    "error": last_err
                                 }),
                             );
                         }

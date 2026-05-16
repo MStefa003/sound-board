@@ -56,6 +56,14 @@ html, body, #root {
 /* -- Modals -- */
 .modal-backdrop { animation: fadeIn 0.14s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sp-shimmer {
+  0%   { transform: translateX(-150%); }
+  100% { transform: translateX(350%); }
+}
+@keyframes sp-slide-in-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 .modal-content  { animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(8px) scale(0.97); }
@@ -220,6 +228,15 @@ input[type="range"]:hover::-webkit-slider-thumb { background: #fff; transform: s
 }
 .sound-list-row.playing:hover { background: rgba(91,156,246,0.11); }
 .sound-list-row.checked td { background: rgba(91,156,246,0.06); }
+/* Favorite star — list rows */
+.row-star { opacity: 0; background: none; border: none; cursor: pointer; padding: 0 2px; line-height: 0; transition: opacity 0.1s, color 0.1s; color: var(--text-4); }
+.sound-list-row:hover .row-star { opacity: 0.5; }
+.row-star.fav { opacity: 1 !important; color: #eab308; }
+/* Favorite star — grid tiles */
+.sound-tile .star-btn { position: absolute; top: 6px; right: 6px; opacity: 0; background: none; border: none; cursor: pointer; padding: 3px; border-radius: 4px; line-height: 0; z-index: 1; transition: opacity 0.12s, background 0.1s, color 0.1s; color: var(--text-3); }
+.sound-tile:hover .star-btn { opacity: 1; }
+.star-btn.starred { opacity: 1 !important; color: #eab308; }
+.star-btn:hover { background: rgba(255,255,255,0.09) !important; }
 
 .list-accent-dot {
   display: inline-block; width: 6px; height: 6px;

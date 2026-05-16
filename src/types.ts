@@ -7,6 +7,7 @@
   color: string;
   duration: number | null;
   category: string | null;
+  favorite?: boolean;
 }
 
 export interface PlayingInstance {

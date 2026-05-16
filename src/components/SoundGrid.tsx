@@ -17,12 +17,14 @@ interface SoundGridProps {
   onFileDrop?: (path: string) => void;
   onReorder?: (sounds: Sound[]) => void;
   canReorder?: boolean;
+  onToggleFavorite?: (id: string) => void;
+  onShowInExplorer?: (sound: Sound) => void;
 }
 
 export default function SoundGrid({
   sounds, playingInstances, searchQuery, existingCategories,
   onPlay, onStop, onDelete, onEdit, onSetCategory, onAddSound,
-  onReorder, canReorder,
+  onReorder, canReorder, onToggleFavorite, onShowInExplorer,
 }: SoundGridProps) {
   const [fileDragOver, setFileDragOver] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -131,6 +133,8 @@ export default function SoundGrid({
                 onDelete={onDelete}
                 onEdit={onEdit}
                 onSetCategory={onSetCategory}
+                onToggleFavorite={onToggleFavorite}
+                onShowInExplorer={onShowInExplorer}
               />
             </div>
           ))}

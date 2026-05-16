@@ -53,6 +53,8 @@ pub fn run() {
             commands::reboot_system,
             commands::start_mic_passthrough,
             commands::stop_mic_passthrough,
+            commands::start_download,
+            commands::show_in_explorer,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

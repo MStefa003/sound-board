@@ -1,4 +1,5 @@
 ﻿import React, { useState, useCallback, useRef, useLayoutEffect } from 'react';
+import { Star, FolderOpen } from 'lucide-react';
 import { Sound, PlayingInstance, formatDuration, TILE_COLORS } from '../types';
 import AssignCategoryModal from './AssignCategoryModal';
 
@@ -15,6 +16,8 @@ interface SoundListProps {
   onDelete: (id: string) => void;
   onEdit: (sound: Sound) => void;
   onSetCategory: (ids: string[], category: string | null) => void;
+  onToggleFavorite?: (id: string) => void;
+  onShowInExplorer?: (sound: Sound) => void;
 }
 
 interface CtxMenu { x: number; y: number; sound: Sound }
@@ -32,6 +35,8 @@ export default function SoundList({
   onDelete,
   onEdit,
   onSetCategory,
+  onToggleFavorite,
+  onShowInExplorer,
 }: SoundListProps) {
   const [focusId, setFocusId] = useState<string | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
@@ -268,6 +273,13 @@ export default function SoundList({
                       <span style={{ fontSize: 13, fontWeight: playing ? 500 : 400, color: playing ? 'var(--text-1)' : 'var(--text-2)' }}>
                         {sound.name}
                       </span>
+                      <button
+                        className={`row-star${sound.favorite ? ' fav' : ''}`}
+                        onClick={e => { e.stopPropagation(); onToggleFavorite?.(sound.id); }}
+                        title={sound.favorite ? 'Unpin' : 'Pin to top'}
+                      >
+                        <Star size={10} fill={sound.favorite ? 'currentColor' : 'none'} />
+                      </button>
                     </div>
                   </td>
 
@@ -399,6 +411,15 @@ export default function SoundList({
                 </span>
                 Edit
               </button>
+              <button
+                onClick={() => { onToggleFavorite?.(ctxMenu.sound.id); closeCtx(); }}
+                style={ctxMenu.sound.favorite ? { color: '#eab308' } : undefined}
+              >
+                <span className="ctx-icon">
+                  <Star size={11} fill={ctxMenu.sound.favorite ? 'currentColor' : 'none'} />
+                </span>
+                {ctxMenu.sound.favorite ? 'Unpin' : 'Pin to top'}
+              </button>
               <button onClick={() => openCategoryModal([ctxMenu.sound.id])}>
                 <span className="ctx-icon">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -407,6 +428,10 @@ export default function SoundList({
                   </svg>
                 </span>
                 Set Category
+              </button>
+              <button onClick={() => { onShowInExplorer?.(ctxMenu.sound); closeCtx(); }}>
+                <span className="ctx-icon"><FolderOpen size={11} /></span>
+                Show in Explorer
               </button>
               <div className="ctx-sep" />
               <button className="danger" onClick={handleCtxDelete}>

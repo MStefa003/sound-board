@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Play, Square, Trash2, Edit2 } from "lucide-react";
+import { Play, Square, Trash2, Edit2, Star, FolderOpen } from "lucide-react";
 import { Sound, TILE_COLORS, formatDuration } from "../types";
 import AssignCategoryModal from "./AssignCategoryModal";
 
@@ -12,9 +12,11 @@ interface SoundTileProps {
   onDelete: (id: string) => void;
   onEdit: (sound: Sound) => void;
   onSetCategory: (ids: string[], category: string | null) => void;
+  onToggleFavorite?: (id: string) => void;
+  onShowInExplorer?: (sound: Sound) => void;
 }
 
-export default function SoundTile({ sound, playingInstanceId, existingCategories, onPlay, onStop, onDelete, onEdit, onSetCategory }: SoundTileProps) {
+export default function SoundTile({ sound, playingInstanceId, existingCategories, onPlay, onStop, onDelete, onEdit, onSetCategory, onToggleFavorite, onShowInExplorer }: SoundTileProps) {
   const isPlaying = playingInstanceId !== null;
   const accent = (TILE_COLORS[sound.color] ?? TILE_COLORS["grey"]).bar;
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
@@ -84,6 +86,14 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
             }}
           />
         )}
+
+        <button
+          className={`star-btn${sound.favorite ? ' starred' : ''}`}
+          onClick={e => { e.stopPropagation(); onToggleFavorite?.(sound.id); }}
+          title={sound.favorite ? 'Unpin' : 'Pin to top'}
+        >
+          <Star size={11} fill={sound.favorite ? 'currentColor' : 'none'} />
+        </button>
 
         <div style={{ padding: "10px 10px 9px 12px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 8 }}>
           <div className="flex items-start gap-2">
@@ -172,11 +182,21 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
           style={{ top: ctxMenu.y, left: ctxMenu.x }}
         >
           {[
+            {
+              icon: <Star size={11} fill={sound.favorite ? 'currentColor' : 'none'} style={{ color: sound.favorite ? '#eab308' : undefined }} />,
+              label: sound.favorite ? 'Unpin' : 'Pin to top',
+              action: () => { onToggleFavorite?.(sound.id); setCtxMenu(null); },
+            },
             { icon: <Edit2 size={11} />, label: "Edit", action: () => { onEdit(sound); setCtxMenu(null); } },
             {
               icon: isPlaying ? <Square size={11} /> : <Play size={11} />,
               label: isPlaying ? "Stop" : "Play",
               action: () => { isPlaying ? onStop(playingInstanceId!) : onPlay(sound); setCtxMenu(null); },
+            },
+            {
+              icon: <FolderOpen size={11} />,
+              label: 'Show in Explorer',
+              action: () => { onShowInExplorer?.(sound); setCtxMenu(null); },
             },
           ].map((item, i) => (
             <button key={i} onClick={item.action}>
