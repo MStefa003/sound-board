@@ -2,7 +2,7 @@
 import { open } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { X, Music, Keyboard } from 'lucide-react';
-import { Sound, TILE_COLORS, COLOR_KEYS, DEFAULT_COLOR, formatDuration } from '../types';
+import { Sound, TILE_COLORS, COLOR_KEYS, DEFAULT_COLOR, formatDuration, formatHotkeyDisplay } from '../types';
 
 interface AddSoundModalProps {
   onAdd: (data: Omit<Sound, 'id'>) => void;
@@ -65,11 +65,10 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
     if (!recording) return;
     e.preventDefault();
     const parts: string[] = [];
-    if (e.ctrlKey) parts.push('Ctrl');
-    if (e.altKey) parts.push('Alt');
-    if (e.shiftKey) parts.push('Shift');
-    const key = e.key;
-    if (!['Control','Alt','Shift','Meta'].includes(key)) parts.push(key.toUpperCase());
+    if (e.ctrlKey) parts.push('ctrl');
+    if (e.altKey) parts.push('alt');
+    if (e.shiftKey) parts.push('shift');
+    if (!['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) parts.push(e.code);
     if (parts.length) { setHotkey(parts.join('+')); setRecording(false); }
   };
 
@@ -301,16 +300,16 @@ export default function AddSoundModal({ onAdd, onClose, editingSound, initialPat
                 >
                   <Keyboard size={11} style={{ flexShrink: 0 }} />
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11 }}>
-                    {recording ? 'Press keysβ€¦' : (hotkey || 'Record')}
+                    {recording ? 'Press keys…' : (hotkey ? formatHotkeyDisplay(hotkey) : 'Record')}
                   </span>
                 </button>
                 {hotkey && !recording && (
                   <button
                     type="button"
                     onClick={() => setHotkey('')}
-                    style={{ color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', fontSize: 16, lineHeight: 1 }}
+                    style={{ color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
                     title="Clear hotkey"
-                  >Γ—</button>
+                  ><X size={11} /></button>
                 )}
               </div>
             </div>

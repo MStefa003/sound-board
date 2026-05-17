@@ -40,3 +40,30 @@ export function formatDuration(seconds: number | null): string {
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
+
+/**
+ * Convert stored hotkey (Code format) to human-readable display.
+ * e.g. "ctrl+KeyA" → "Ctrl+A", "KeyA" → "A", "Digit1" → "1"
+ */
+export function formatHotkeyDisplay(hk: string): string {
+  return hk.split('+').map(part => {
+    if (part.startsWith('Key')) return part.slice(3);    // "KeyA" → "A"
+    if (part.startsWith('Digit')) return part.slice(5);  // "Digit1" → "1"
+    return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase(); // "ctrl" → "Ctrl"
+  }).join('+');
+}
+
+/**
+ * Normalize a hotkey string to the Code format expected by the global-hotkey crate.
+ * Handles old-format hotkeys (e.g. "A" stored before the fix) by converting to "KeyA".
+ */
+export function normalizeHotkey(hk: string): string {
+  return hk.split('+').map(part => {
+    const lower = part.toLowerCase();
+    if (['ctrl', 'alt', 'shift', 'super', 'meta', 'command'].includes(lower)) return lower;
+    if (/^Key[A-Z]/.test(part) || /^Digit[0-9]/.test(part)) return part; // already correct
+    if (/^[A-Za-z]$/.test(part)) return `Key${part.toUpperCase()}`;       // "A" → "KeyA"
+    if (/^[0-9]$/.test(part)) return `Digit${part}`;                      // "1" → "Digit1"
+    return part; // Space, Enter, Escape, F1, etc.
+  }).join('+');
+}

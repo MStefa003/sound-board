@@ -5,7 +5,7 @@ mod commands;
 use commands::AppState;
 use sounds::SoundsStore;
 use std::sync::Mutex;
-use tauri::{Emitter, Manager};
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -14,16 +14,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
-        .plugin(
-            tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, shortcut, event| {
-                    use tauri_plugin_global_shortcut::ShortcutState;
-                    if event.state() == ShortcutState::Pressed {
-                        let _ = app.emit("hotkey-pressed", shortcut.to_string());
-                    }
-                })
-                .build(),
-        )
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             let tx = audio::start_audio_thread(app.handle().clone());
             let sounds_store = SoundsStore::load();

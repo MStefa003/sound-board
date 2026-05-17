@@ -1,5 +1,7 @@
 ﻿import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useState, useEffect } from "react";
+import { SkipBack, SkipForward, Play, Pause } from "lucide-react";
+import { Sound } from "../types";
 
 const appWindow = getCurrentWindow();
 
@@ -38,7 +40,20 @@ const CloseIcon = () => (
   </svg>
 );
 
-export default function Titlebar() {
+interface TitlebarProps {
+  hasPlaying: boolean;
+  currentlyPlaying: Sound | null;
+  isPaused: boolean;
+  playingCount: number;
+  onPrev: () => void;
+  onPauseResume: () => void;
+  onNext: () => void;
+}
+
+export default function Titlebar({
+  hasPlaying, currentlyPlaying, isPaused, playingCount,
+  onPrev, onPauseResume, onNext,
+}: TitlebarProps) {
   const [maximized, setMaximized] = useState(false);
 
   useEffect(() => {
@@ -49,32 +64,105 @@ export default function Titlebar() {
     return () => { unlisten.then(fn => fn()); };
   }, []);
 
-  const controls = [
-    { icon: <MinimizeIcon />, fn: () => appWindow.minimize(),       isClose: false, title: "Minimize" },
+  const winControls = [
+    { icon: <MinimizeIcon />, fn: () => appWindow.minimize(),                              isClose: false, title: "Minimize" },
     { icon: maximized ? <RestoreIcon /> : <MaximizeIcon />, fn: () => appWindow.toggleMaximize(), isClose: false, title: maximized ? "Restore" : "Maximize" },
-    { icon: <CloseIcon />,   fn: () => appWindow.close(),           isClose: true,  title: "Close"    },
+    { icon: <CloseIcon />,   fn: () => appWindow.close(),                                  isClose: true,  title: "Close"    },
   ];
+
+  const transBtnStyle = (off: boolean): React.CSSProperties => ({
+    width: 26, height: 26, border: "none", outline: "none", borderRadius: 5,
+    background: "transparent", cursor: off ? "default" : "pointer",
+    color: off ? "var(--text-4)" : "var(--text-3)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    transition: "background 0.1s, color 0.1s",
+    opacity: off ? 0.35 : 1, flexShrink: 0,
+  });
 
   return (
     <div
       data-tauri-drag-region
-      className="flex items-center justify-between shrink-0 select-none"
-      style={{ height: 40, background: "var(--surface-1)", borderBottom: "1px solid var(--border-dim)" }}
+      className="flex items-center select-none shrink-0"
+      style={{ height: 38, background: "var(--surface-1)", borderBottom: "1px solid var(--border-dim)" }}
     >
+      {/* App identity — drag region */}
       <div
-        className="flex items-center gap-2.5 px-3"
-        style={{ pointerEvents: "none" }}
+        data-tauri-drag-region
+        className="flex items-center"
+        style={{ gap: 7, padding: "0 13px 0 14px", flexShrink: 0 }}
       >
-        <span style={{ color: "var(--accent)" }}>
-          <WaveIcon />
-        </span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.18em" }}>
+        <span style={{ color: "var(--accent)", lineHeight: 0 }}><WaveIcon /></span>
+        <span style={{ fontSize: 10.5, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.15em" }}>
           SOUNDPAD
         </span>
       </div>
 
-      <div className="flex" style={{ height: "100%" }}>
-        {controls.map((btn, i) => (
+      <div style={{ width: 1, height: 14, background: "var(--border-dim)", flexShrink: 0 }} />
+
+      {/* Transport */}
+      <div className="flex items-center" style={{ padding: "0 5px", gap: 0 }}>
+        {[
+          { icon: <SkipBack size={11} />,                              fn: onPrev,         title: "Previous"                    },
+          { icon: isPaused ? <Play size={12} /> : <Pause size={12} />, fn: onPauseResume,  title: isPaused ? "Resume" : "Pause" },
+          { icon: <SkipForward size={11} />,                           fn: onNext,         title: "Next"                        },
+        ].map((btn, i) => (
+          <button
+            key={i}
+            style={transBtnStyle(!hasPlaying)}
+            title={btn.title}
+            onClick={btn.fn}
+            disabled={!hasPlaying}
+            onMouseEnter={e => {
+              if (hasPlaying) {
+                e.currentTarget.style.background = "rgba(255,255,255,0.07)";
+                e.currentTarget.style.color = "var(--text-1)";
+              }
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = !hasPlaying ? "var(--text-4)" : "var(--text-3)";
+            }}
+          >
+            {btn.icon}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ width: 1, height: 14, background: "var(--border-dim)", flexShrink: 0 }} />
+
+      {/* Now playing — drag region */}
+      <div
+        data-tauri-drag-region
+        className="flex items-center"
+        style={{ flex: 1, minWidth: 0, overflow: "hidden", gap: 7, padding: "0 12px" }}
+      >
+        {currentlyPlaying ? (
+          <>
+            {!isPaused ? (
+              <span className="wave-bars" style={{ color: "var(--accent)", flexShrink: 0 }}>
+                <span className="wave-bar" /><span className="wave-bar" /><span className="wave-bar" />
+              </span>
+            ) : (
+              <span style={{ fontSize: 10, color: "var(--text-4)", flexShrink: 0, lineHeight: 1 }}>⏸</span>
+            )}
+            <span style={{
+              fontSize: 12, color: isPaused ? "var(--text-4)" : "var(--text-2)",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
+              {currentlyPlaying.name}
+            </span>
+            {playingCount > 1 && (
+              <span style={{ fontSize: 10, color: "var(--text-4)", flexShrink: 0 }}>+{playingCount - 1}</span>
+            )}
+          </>
+        ) : (
+          <span style={{ fontSize: 11, color: "var(--text-4)" }}>Nothing playing</span>
+        )}
+      </div>
+
+      {/* Window controls */}
+      <div className="flex" style={{ height: "100%", flexShrink: 0 }}>
+        {winControls.map((btn, i) => (
           <button
             key={i}
             onClick={btn.fn}
@@ -88,9 +176,7 @@ export default function Titlebar() {
               transition: "background 0.1s, color 0.1s",
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = btn.isClose
-                ? "rgba(196, 43, 33, 0.9)"
-                : "rgba(255,255,255,0.08)";
+              e.currentTarget.style.background = btn.isClose ? "rgba(196,43,33,0.9)" : "rgba(255,255,255,0.08)";
               e.currentTarget.style.color = btn.isClose ? "#fff" : "var(--text-1)";
             }}
             onMouseLeave={e => {
@@ -105,3 +191,4 @@ export default function Titlebar() {
     </div>
   );
 }
+

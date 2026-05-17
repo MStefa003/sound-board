@@ -1,6 +1,6 @@
 ﻿import React, { useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { Star, FolderOpen } from 'lucide-react';
-import { Sound, PlayingInstance, formatDuration, TILE_COLORS } from '../types';
+import { Sound, PlayingInstance, formatDuration, TILE_COLORS, formatHotkeyDisplay } from '../types';
 import AssignCategoryModal from './AssignCategoryModal';
 
 interface SoundListProps {
@@ -305,7 +305,7 @@ export default function SoundList({
 
                   {/* Hotkey */}
                   <td style={{ width: 100, paddingLeft: 8 }}>
-                    {sound.hotkey ? <span className="hotkey-badge-list">{sound.hotkey}</span> : null}
+                    {sound.hotkey ? <span className="hotkey-badge-list">{formatHotkeyDisplay(sound.hotkey)}</span> : null}
                   </td>
 
                   {/* Stop button */}

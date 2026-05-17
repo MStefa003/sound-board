@@ -8,7 +8,7 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import { Download, X, Loader2 } from 'lucide-react';
 import './App.css';
 
-import { Sound, PlayingInstance } from './types';
+import { Sound, PlayingInstance, normalizeHotkey } from './types';
 import Titlebar from './components/Titlebar';
 import Toolbar from './components/Toolbar';
 import SoundGrid from './components/SoundGrid';
@@ -25,6 +25,11 @@ export type PlayMode = 'both' | 'speakers' | 'mic';
 
 export default function App() {
   const [sounds, setSounds] = useState<Sound[]>([]);
+  const soundsRef = useRef<Sound[]>([]);
+  soundsRef.current = sounds;
+  const [stopHotkey, setStopHotkeyState] = useState<string>(() => localStorage.getItem('stop-hotkey') ?? '');
+  const stopHotkeyRef = useRef(stopHotkey);
+  stopHotkeyRef.current = stopHotkey;
   const [playingInstances, setPlayingInstances] = useState<PlayingInstance[]>([]);
   const [pausedInstances, setPausedInstances] = useState<Set<string>>(new Set());
   const [availableDevices, setAvailableDevices] = useState<string[]>(['Default']);
@@ -104,7 +109,21 @@ export default function App() {
     };
   }, []);
 
-  // Register hotkeys — always start fresh to prevent handler stacking
+  const playSound = useCallback(async (sound: Sound) => {
+    try {
+      await invoke('play_sound', { soundId: sound.id, path: sound.path, volume: sound.volume });
+    } catch (err) {
+      console.error('Failed to play:', err);
+    }
+  }, []);
+
+  const stopAll = useCallback(async () => {
+    try { await invoke('stop_all_sounds'); } catch (err) { console.error(err); }
+  }, []);
+
+  // Register hotkeys — always start fresh to prevent handler stacking.
+  // Each callback captures the sound's ID and looks up the current sound
+  // in soundsRef so volume changes are reflected without needing re-registration.
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -112,12 +131,29 @@ export default function App() {
       if (!alive) return;
       for (const sound of sounds) {
         if (!alive || !sound.hotkey) continue;
-        try { await register(sound.hotkey, e => { if (e.state === 'Pressed') playSound(sound); }); } catch (_) {}
+        const soundId = sound.id;
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await register(normalizeHotkey(sound.hotkey), (evt: any) => {
+            if (evt?.state === 'Released') return;
+            const current = soundsRef.current.find(s => s.id === soundId);
+            if (current) playSound(current);
+          });
+        } catch (_) {}
+      }
+      if (stopHotkey && alive) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await register(normalizeHotkey(stopHotkey), (evt: any) => {
+            if (evt?.state === 'Released') return;
+            stopAll();
+          });
+        } catch (_) {}
       }
     })();
     return () => { alive = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sounds.map(s => s.hotkey).join(',')]);
+  }, [sounds.map(s => s.hotkey).join(','), stopHotkey, playSound, stopAll]);
 
   // Sync master volume
   useEffect(() => {
@@ -138,14 +174,6 @@ export default function App() {
     } catch { setIsInstalling(false); }
   };
 
-  const playSound = useCallback(async (sound: Sound) => {
-    try {
-      await invoke('play_sound', { soundId: sound.id, path: sound.path, volume: sound.volume });
-    } catch (err) {
-      console.error('Failed to play:', err);
-    }
-  }, []);
-
   const stopSound = useCallback(async (instanceId: string) => {
     try { await invoke('stop_sound', { instanceId }); } catch (err) { console.error(err); }
   }, []);
@@ -156,10 +184,6 @@ export default function App() {
 
   const resumeSound = useCallback(async (instanceId: string) => {
     try { await invoke('resume_sound', { instanceId }); } catch (err) { console.error(err); }
-  }, []);
-
-  const stopAll = useCallback(async () => {
-    try { await invoke('stop_all_sounds'); } catch (err) { console.error(err); }
   }, []);
 
   // Previous / next sound navigation
@@ -211,7 +235,7 @@ export default function App() {
   const handleSaveSound = useCallback(async (sound: Sound) => {
     const existing = sounds.find(s => s.id === sound.id);
     if (existing?.hotkey && existing.hotkey !== sound.hotkey) {
-      try { await unregister(existing.hotkey); } catch (_) {}
+      try { await unregister(normalizeHotkey(existing.hotkey)); } catch (_) {}
     }
     // Registration is handled by the hotkey effect — don't register here to avoid duplicates
     const updated = existing
@@ -222,7 +246,7 @@ export default function App() {
 
   const handleDeleteSound = useCallback(async (id: string) => {
     const sound = sounds.find(s => s.id === id);
-    if (sound?.hotkey) { try { await unregister(sound.hotkey); } catch (_) {} }
+    if (sound?.hotkey) { try { await unregister(normalizeHotkey(sound.hotkey)); } catch (_) {} }
     saveSounds(sounds.filter(s => s.id !== id));
   }, [sounds, saveSounds]);
 
@@ -322,7 +346,15 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ background: 'var(--bg)' }} onContextMenu={e => e.preventDefault()}>
-      <Titlebar />
+      <Titlebar
+        hasPlaying={playingInstances.length > 0}
+        currentlyPlaying={currentlyPlaying ?? null}
+        isPaused={isPausedMain}
+        playingCount={playingInstances.length}
+        onPrev={playPrev}
+        onPauseResume={togglePauseResume}
+        onNext={playNext}
+      />
       <Toolbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -338,11 +370,6 @@ export default function App() {
         onViewModeChange={setViewMode}
         playMode={playMode}
         onPlayModeChange={setPlayMode}
-        currentlyPlaying={currentlyPlaying ?? null}
-        isPaused={isPausedMain}
-        onPauseResume={togglePauseResume}
-        onPrev={playPrev}
-        onNext={playNext}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
@@ -422,6 +449,12 @@ export default function App() {
           onDeviceToggle={handleDeviceToggle}
           onMasterVolumeChange={setMasterVolume}
           onClose={() => setShowSettings(false)}
+          stopHotkey={stopHotkey}
+          onStopHotkeyChange={v => {
+            setStopHotkeyState(v);
+            if (v) localStorage.setItem('stop-hotkey', v);
+            else localStorage.removeItem('stop-hotkey');
+          }}
         />
       )}
       {showDriverSetup && (

@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { X, Volume2, Monitor, Mic, Info, RefreshCw } from "lucide-react";
+import { X, Volume2, Monitor, Mic, Info, RefreshCw, Keyboard } from "lucide-react";
+import { formatHotkeyDisplay } from "../types";
 
 interface SettingsPanelProps {
   availableDevices: string[];
@@ -11,9 +12,11 @@ interface SettingsPanelProps {
   onDeviceToggle: (device: string) => void;
   onMasterVolumeChange: (v: number) => void;
   onClose: () => void;
+  stopHotkey: string;
+  onStopHotkeyChange: (v: string) => void;
 }
 
-type NavId = "volume" | "devices" | "routing" | "updates" | "about";
+type NavId = "volume" | "devices" | "routing" | "hotkeys" | "updates" | "about";
 
 interface NavItem {
   id: NavId;
@@ -26,6 +29,7 @@ const NAV: NavItem[] = [
   { id: "volume",  label: "Volume",         icon: Volume2,   group: "Audio"   },
   { id: "devices", label: "Output Devices", icon: Monitor,   group: "Audio"   },
   { id: "routing", label: "Mic Routing",    icon: Mic,       group: "Routing" },
+  { id: "hotkeys", label: "Hotkeys",        icon: Keyboard,  group: "Routing" },
   { id: "updates", label: "Updates",        icon: RefreshCw, group: "Info"    },
   { id: "about",   label: "About",          icon: Info,      group: "Info"    },
 ];
@@ -58,8 +62,10 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
 
 export default function SettingsPanel({
   availableDevices, selectedDevices, masterVolume, onDeviceToggle, onMasterVolumeChange, onClose,
+  stopHotkey, onStopHotkeyChange,
 }: SettingsPanelProps) {
   const [activeId, setActiveId] = useState<NavId>("volume");
+  const [recordingStop, setRecordingStop] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>("idle");
   const [updateVersion, setUpdateVersion] = useState<string | null>(null);
   const [updateNotes, setUpdateNotes] = useState<string | null>(null);
@@ -101,6 +107,17 @@ export default function SettingsPanel({
       setUpdateStatus("error");
       setUpdateError(String(e));
     }
+  };
+
+  const handleStopHotkeyKeyDown = (e: React.KeyboardEvent) => {
+    if (!recordingStop) return;
+    e.preventDefault();
+    const parts: string[] = [];
+    if (e.ctrlKey) parts.push('ctrl');
+    if (e.altKey) parts.push('alt');
+    if (e.shiftKey) parts.push('shift');
+    if (!['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) parts.push(e.code);
+    if (parts.length) { onStopHotkeyChange(parts.join('+')); setRecordingStop(false); }
   };
 
   const cableDevice = availableDevices.find(d => d.toLowerCase().includes("cable input"));
@@ -349,6 +366,53 @@ export default function SettingsPanel({
                       />
                     </div>
                   )}
+                </div>
+              </Section>
+            )}
+
+            {activeId === "hotkeys" && (
+              <Section title="Global Hotkeys" description="System-wide shortcuts that trigger even when the app is in the background.">
+                <div style={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: 400 }}>
+                  <p style={{ margin: "0 0 8px", fontSize: 11.5, fontWeight: 600, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.07em" }}>Playback</p>
+                  <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "10px 14px", borderRadius: 8,
+                    background: "var(--surface-2)", border: "1px solid var(--border)",
+                    gap: 12,
+                  }}>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 500, color: "var(--text-1)" }}>Stop all sounds</p>
+                      <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--text-3)" }}>Immediately stops everything playing</p>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                      <button
+                        onKeyDown={handleStopHotkeyKeyDown}
+                        onClick={() => setRecordingStop(r => !r)}
+                        style={{
+                          height: 30, minWidth: 90, padding: "0 10px", borderRadius: 6,
+                          border: recordingStop ? "1px solid rgba(91,156,246,0.5)" : "1px solid var(--border-dim)",
+                          background: recordingStop ? "rgba(91,156,246,0.08)" : "transparent",
+                          color: recordingStop ? "var(--accent)" : stopHotkey ? "var(--text-2)" : "var(--text-4)",
+                          fontSize: 11.5, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        <Keyboard size={11} style={{ flexShrink: 0 }} />
+                        <span>{recordingStop ? "Press keys…" : (stopHotkey ? formatHotkeyDisplay(stopHotkey) : "Record")}</span>
+                      </button>
+                      {stopHotkey && !recordingStop && (
+                        <button
+                          onClick={() => { onStopHotkeyChange(''); setRecordingStop(false); }}
+                          style={{ color: "var(--text-4)", background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", borderRadius: 4 }}
+                          title="Clear hotkey"
+                          onMouseEnter={e => (e.currentTarget.style.color = "var(--text-2)")}
+                          onMouseLeave={e => (e.currentTarget.style.color = "var(--text-4)")}
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </Section>
             )}

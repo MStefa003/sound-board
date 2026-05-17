@@ -1,4 +1,6 @@
-﻿interface StatusBarProps {
+﻿import { openUrl } from '@tauri-apps/plugin-opener';
+
+interface StatusBarProps {
   soundCount: number;
   playingCount: number;
   masterVolume: number;
@@ -69,7 +71,24 @@ export default function StatusBar({ soundCount, playingCount, masterVolume, sele
       </span>
 
       <span style={{ margin: '0 10px', color: 'var(--border-dim)' }}>·</span>
-      <span style={{ fontSize: 10.5, color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>v1.1.9</span>
+      <span style={{ fontSize: 10.5, color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>v1.2.0</span>
+
+      <span style={{ margin: '0 8px', color: 'var(--border-dim)' }}>·</span>
+      <button
+        onClick={() => openUrl('https://buymeacoffee.com/marouskis')}
+        title="Buy me a coffee ☕"
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+          fontSize: 10.5, color: 'var(--text-4)',
+          transition: 'color 0.1s',
+          fontFamily: 'inherit',
+          flexShrink: 0,
+        }}
+        onMouseEnter={e => (e.currentTarget.style.color = '#f59e0b')}
+        onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-4)')}
+      >
+        ☕
+      </button>
     </div>
   );
 }

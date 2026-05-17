@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Play, Square, Trash2, Edit2, Star, FolderOpen } from "lucide-react";
-import { Sound, TILE_COLORS, formatDuration } from "../types";
+import { Sound, TILE_COLORS, formatDuration, formatHotkeyDisplay } from "../types";
 import AssignCategoryModal from "./AssignCategoryModal";
 
 interface SoundTileProps {
@@ -98,7 +98,7 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
         <div style={{ padding: "10px 10px 9px 12px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 8 }}>
           <div className="flex items-start gap-2">
             <span style={{
-              fontSize: 12.5, fontWeight: 600, lineHeight: 1.35,
+              fontSize: 13, fontWeight: 600, lineHeight: 1.35,
               color: isPlaying ? "var(--text-1)" : "var(--text-2)",
               flex: 1,
               display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
@@ -124,7 +124,7 @@ export default function SoundTile({ sound, playingInstanceId, existingCategories
                 border: "1px solid var(--border-dim)",
                 borderRadius: 3, padding: "1px 4px",
               }}>
-                {sound.hotkey}
+                {formatHotkeyDisplay(sound.hotkey)}
               </span>
             )}
             {sound.category && (
