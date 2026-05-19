@@ -19,6 +19,7 @@ import DownloadModal from './components/DownloadModal';
 import SettingsPanel from './components/SettingsPanel';
 import StatusBar from './components/StatusBar';
 import DriverSetupModal from './components/DriverSetupModal';
+import PlaybackBar from './components/PlaybackBar';
 
 export type ViewMode = 'grid' | 'list';
 export type PlayMode = 'both' | 'speakers' | 'mic';
@@ -32,6 +33,7 @@ export default function App() {
   stopHotkeyRef.current = stopHotkey;
   const [playingInstances, setPlayingInstances] = useState<PlayingInstance[]>([]);
   const [pausedInstances, setPausedInstances] = useState<Set<string>>(new Set());
+  const [playbackPosition, setPlaybackPosition] = useState(0);
   const [availableDevices, setAvailableDevices] = useState<string[]>(['Default']);
   const [userDevices, setUserDevices] = useState<string[]>(['Default']);
   const [masterVolume, setMasterVolume] = useState(1.0);
@@ -87,7 +89,11 @@ export default function App() {
     });
     const unlistenStopped = listen<string>('sound-stopped', e => {
       const id = e.payload;
-      setPlayingInstances(prev => prev.filter(p => p.instanceId !== id));
+      setPlayingInstances(prev => {
+        const next = prev.filter(p => p.instanceId !== id);
+        if (prev.length > 0 && prev[0].instanceId === id) setPlaybackPosition(0);
+        return next;
+      });
       setPausedInstances(prev => { const s = new Set(prev); s.delete(id); return s; });
     });
     const unlistenPaused = listen<string>('sound-paused', e => {
@@ -100,17 +106,27 @@ export default function App() {
       setErrorToast(e.payload.error);
       setTimeout(() => setErrorToast(null), 5000);
     });
+    const unlistenProgress = listen<{ instanceId: string; positionSecs: number }>('sound-progress', e => {
+      setPlayingInstances(prev => {
+        if (prev.length > 0 && prev[0].instanceId === e.payload.instanceId) {
+          setPlaybackPosition(e.payload.positionSecs);
+        }
+        return prev;
+      });
+    });
     return () => {
       unlistenStarted.then(fn => fn());
       unlistenStopped.then(fn => fn());
       unlistenPaused.then(fn => fn());
       unlistenResumed.then(fn => fn());
       unlistenError.then(fn => fn());
+      unlistenProgress.then(fn => fn());
     };
   }, []);
 
   const playSound = useCallback(async (sound: Sound) => {
     try {
+      await invoke('stop_all_sounds');
       await invoke('play_sound', { soundId: sound.id, path: sound.path, volume: sound.volume });
     } catch (err) {
       console.error('Failed to play:', err);
@@ -184,6 +200,10 @@ export default function App() {
 
   const resumeSound = useCallback(async (instanceId: string) => {
     try { await invoke('resume_sound', { instanceId }); } catch (err) { console.error(err); }
+  }, []);
+
+  const seekSound = useCallback(async (instanceId: string, positionSecs: number) => {
+    try { await invoke('seek_sound', { instanceId, positionSecs }); } catch (err) { console.error(err); }
   }, []);
 
   // Previous / next sound navigation
@@ -354,6 +374,13 @@ export default function App() {
         onPrev={playPrev}
         onPauseResume={togglePauseResume}
         onNext={playNext}
+      />
+      <PlaybackBar
+        currentSound={currentlyPlaying ?? null}
+        instanceId={playingInstances[0]?.instanceId ?? null}
+        positionSecs={playbackPosition}
+        isPaused={isPausedMain}
+        onSeek={seekSound}
       />
       <Toolbar
         searchQuery={searchQuery}

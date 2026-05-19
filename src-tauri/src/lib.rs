@@ -34,6 +34,7 @@ pub fn run() {
             commands::stop_all_sounds,
             commands::pause_sound,
             commands::resume_sound,
+            commands::seek_sound,
             commands::get_sound_duration,
             commands::load_sounds,
             commands::save_sounds,

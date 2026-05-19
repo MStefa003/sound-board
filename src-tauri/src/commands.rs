@@ -173,6 +173,16 @@ pub fn resume_sound(state: State<AppState>, instance_id: String) -> Result<(), S
 }
 
 #[tauri::command]
+pub fn seek_sound(state: State<AppState>, instance_id: String, position_secs: f32) -> Result<(), String> {
+    state
+        .audio_tx
+        .lock()
+        .map_err(|e| e.to_string())?
+        .send(AudioCmd::Seek { instance_id, position_secs })
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn get_sound_duration(path: String) -> Option<f32> {
     audio::get_sound_duration(&path)
 }

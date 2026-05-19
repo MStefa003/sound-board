@@ -164,6 +164,10 @@ pub enum AudioCmd {
     SetMasterVolume {
         volume: f32,
     },
+    Seek {
+        instance_id: String,
+        position_secs: f32,
+    },
 }
 
 struct PlaybackInstance {
@@ -345,8 +349,27 @@ pub fn start_audio_thread(app_handle: AppHandle) -> mpsc::Sender<AudioCmd> {
                             for s in &inst.sinks { s.set_volume(v); }
                         }
                     }
+                    Ok(AudioCmd::Seek { instance_id, position_secs }) => {
+                        if let Some(inst) = instances.get(&instance_id) {
+                            let pos = Duration::from_secs_f32(position_secs.max(0.0));
+                            for s in &inst.sinks {
+                                let _ = s.try_seek(pos);
+                            }
+                        }
+                    }
                     Err(mpsc::TryRecvError::Empty) => break,
                     Err(mpsc::TryRecvError::Disconnected) => return,
+                }
+            }
+
+            // Emit playback progress for playing (non-paused) instances
+            for (id, inst) in &instances {
+                if let Some(sink) = inst.sinks.first() {
+                    let pos = sink.get_pos().as_secs_f32();
+                    let _ = app_handle.emit(
+                        "sound-progress",
+                        serde_json::json!({ "instanceId": id, "positionSecs": pos }),
+                    );
                 }
             }
 
